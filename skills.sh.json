@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "迁移",
+      "description": "遗留 KTHIS / eHealth 功能迁移到 WebHIS 的两段式技能：先出设计文档，再落地代码。",
+      "skills": ["kthis-migration-plan", "kthis-migration"]
+    }
+  ]
+}
