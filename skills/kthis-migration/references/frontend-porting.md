@@ -58,6 +58,7 @@
 > 完整规范以 `webhis-front` 技能 + 仓库 `.agents/rules/pageStyleRule.md`、`docs/FrontNormalize.md` 为准；迁移分册的排版对齐跨模块通用册 `docs/migration/00-前端布局规范.md`。
 
 - 骨架：折叠查询表单 + 结果表格（分页 / 排序 / 状态切换）+ 左分类树 + 操作列；编辑用宽弹窗或多 Tab 表单，子弹窗独立打开。
+- **布局紧凑（重点）**：表单用 `GridFormAntd`（`@/base/ui`），不要用零散 `Row`/`Col` 拼。`templateColumns` 里**标签列用 `auto`、控件列用 `minmax(0,1fr)`（不要裸 `1fr`）**，否则控件被拉满、留大片空白。密度：普通弹窗 / 页签**每行 3~4 对「标签 + 控件」**，密集页签 4 对，辅助弹窗至少 3 对；3 对 → `"auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr)"`，4 对 → 再重复一组。极短字段（年月 / 百分比 / 时长）用 `minmax(0,120px)` 限宽，**不要拉伸**；长文本（备注 / 诊断）才整行。同分区同行列对齐（标签宽统一、gutter 10）。参考实现：`src/pages/<mod>/<feature>/<XxxDialog>.jsx`（同一分区内 4 对/行）。**成组与对齐**：业务相关 / 事件联动的控件要挨在一起（勾选与联动控件、区间上下限、代码与名称）；同组字段不跨行拆散，放不下时整组挪行，必要时可适当调整控件顺序。
 - 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；最小化自定义 CSS，禁止 `!important`。
 
 ## 7. 验证（无测试框架）

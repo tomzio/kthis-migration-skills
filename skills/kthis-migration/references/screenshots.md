@@ -17,7 +17,7 @@
 
 英文名约定：主页面 / 编辑器 `-page`；页签 `-tab`；弹窗、对话框 `-dialog`；需要区分新增态时加前缀 `add-`（编辑态可省略或 `edit-`）。**文件名必须纯 ASCII**，截图里只有中文时翻译成英文 slug。
 
-实例：`01-mim-main-page.png`、`01-mim-drug-info-tab.png`、`01-mim-add-drug-info-tab.png`、`01-mim-fixed-asset-dialog.png`、`01-mim-item-search-dialog.png`。
+实例：`<NN>-<模块代号>-main-page.png`、`<NN>-<模块代号>-<英文名>-tab.png`、`<NN>-<模块代号>-add-<英文名>-tab.png`、`<NN>-<模块代号>-<英文名>-dialog.png`。
 
 ## 何时做
 

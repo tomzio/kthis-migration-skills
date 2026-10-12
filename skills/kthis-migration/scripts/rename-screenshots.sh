@@ -2,7 +2,7 @@
 # rename-screenshots.sh —— 遗留截图按「页面功能」改名，并同步更新文档引用。
 #
 # 规范命名：<功能序号>-<目标模块代号>-<界面英文名>.<png|jpg|jpeg>
-#   例：01-mim-drug-info-tab.png / 01-mim-add-item-info-tab.png / 01-mim-fixed-asset-dialog.png
+#   例：<NN>-<模块代号>-<英文名>-tab.png / <NN>-<模块代号>-add-<英文名>-tab.png / <NN>-<模块代号>-<英文名>-dialog.png
 #
 # 说明：本脚本只做「机械改名 + 改引用」。「识别截图内容、确定功能英文名」需要先由模型
 #       用 read 打开图片看清楚是哪个页面/页签/弹窗，再把结论当作 old=new 传进来。
