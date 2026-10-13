@@ -95,7 +95,10 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - 主数据通用约定：`defunct_ind` 逻辑删除、审计字段、多院区 `entity_mstr_id`。
 - 免登录接口要进 `RequestAuthInterceptor.IGNORED_PATHS`；部分收费/退费接口在方法内自建系统会话，移植时一并保留。
 
-分层细节、四步模板、鉴权、MyBatis 写法、坑 → 读 **[references/backend-porting.md](references/backend-porting.md)**。
+- 模块在仓库里**还不存在**时，先按「从零新建业务模块」补齐：建 4 个模块目录 → 声明依赖 → 注册进根 `pom.xml` 的 `<modules>` → 注册进启动器 `webhis-starter-api/pom.xml`（四处缺一不生效）。
+- 实体写入是 active-record（`insert()`/`update()`/`save()`），审计字段与多院区字段由框架按 `setModified` 语义处理。
+
+分层细节、新建模块脚手架、四步模板、active-record 写法、事务与异常、系统参数、鉴权、MyBatis 写法、坑 → 读 **[references/backend-porting.md](references/backend-porting.md)**。
 
 ### 阶段 4 · 前端实现
 - 页面/弹窗用 `@loadable/component` + `dynamicModule` 懒加载，并在 `<mod>ComponentRegistry.js` 注册。
@@ -115,7 +118,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - G4 无回归：重跑前序关键路径手测。
 - G5 评审确认：用户确认后再推进/提交。
 
-后端改动用 `mvn -pl webhis-<mod>-server-impl -am install`（或 `./startup.sh dev`）。提交用 Conventional Commits（中文描述），经 GitLab MR 合入。
+后端改动用 `mvn -pl webhis-<mod>-server-impl -am install`（或 `./startup.sh dev`）；后端验证不止编译——**接口逐个自测 + 落库核对（`defunct_ind`/审计字段/`entity_mstr_id`/事务回滚）+ 与遗留行为比对**，清单见 **[references/backend-verification.md](references/backend-verification.md)**。提交用 Conventional Commits（中文描述），经 GitLab MR 合入。
 
 ## 最易踩的坑（硬约定速查）
 
@@ -139,7 +142,8 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 - [references/repos-and-map.md](references/repos-and-map.md) —— 三仓库与路径配置、各仓库命令、逐层映射、模块归属确认、迁移文档索引、已落地样例。
 - [references/legacy-tracing.md](references/legacy-tracing.md) —— 遗留侧端到端追踪方法与 GBK 检索。
-- [references/backend-porting.md](references/backend-porting.md) —— 后端分层、四步加接口、鉴权、MyBatis、坑。
+- [references/backend-porting.md](references/backend-porting.md) —— 后端四模块分层、从零新建模块、四步加接口、active-record model、事务与异常、系统参数、MyBatis、鉴权、坑。
+- [references/backend-verification.md](references/backend-verification.md) —— 后端验证：启动、接口自测（E1–E7）、落库核对（D1–D8）、与遗留比对、证据留存格式。
 - [references/frontend-porting.md](references/frontend-porting.md) —— **迁移特有**的前端落点与坑（通用规范以 `webhis-front` 技能 + `.agents/rules/*` 为准）。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) —— 在 GBK 遗留源码里按中文/标识符检索。
 - [scripts/setup-paths.sh](scripts/setup-paths.sh) —— 探测/校验/写出本机三仓库路径。
