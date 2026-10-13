@@ -28,7 +28,7 @@
 ## 流程
 
 1. **收集 + 审计**：`ls <前端>/docs/migration/images/`；或跑
-   `<skill根>/scripts/rename-screenshots.sh --audit <images-dir> <前端>/docs/migration`
+   `scripts/rename-screenshots.sh --audit <images-dir> <前端>/docs/migration`
    列出「非规范命名 / 失效引用 / 未被引用」的图片。
 2. **看图识别（关键步骤，必须模型亲自 `read` 图片）**：逐张用 read 打开图片，读出：
    - 业务域 / 模块；
@@ -38,7 +38,7 @@
    - 主要分区与关键控件（供 README 表「说明」列）。
 3. **定名**：按规范组合三段；含糊时以**图中可见标题 / 页签文案**为准，并回 `<前端>/docs/migration/README.md`（模块索引 / 截图清单）与遗留源码核对归属，再定英文 slug。
 4. **改名 + 同步引用**：
-   `<skill根>/scripts/rename-screenshots.sh <images-dir> <前端>/docs/migration <旧名>=<新名> [更多…]`
+   `scripts/rename-screenshots.sh <images-dir> <前端>/docs/migration <旧名>=<新名> [更多…]`
    脚本用 `git mv` 保历史，并自动把 `docs/` 下所有文档里的旧文件名（含 `images/`、`../images/` 两种写法）替换为新名。
 5. **补引用**：在相关分册插入 `![<中文说明>](images/<新名>)` 与「对齐 `images/<新名>`」；更新 `README.md` 的**截图清单表**（链接 + 界面 + 说明）。
 6. **门禁**：再跑一次 `--audit`，确认 无残留非规范名、无失效引用、无「未被任何文档引用」的图片。
@@ -55,10 +55,10 @@
 
 ```sh
 # 审计：非规范命名 / 失效引用 / 未被引用
-<skill根>/scripts/rename-screenshots.sh --audit <images-dir> [docs-dir]
+scripts/rename-screenshots.sh --audit <images-dir> [docs-dir]
 
 # 改名 + 同步文档引用（可批量）
-<skill根>/scripts/rename-screenshots.sh <images-dir> <docs-dir> <旧名>=<新名> [<旧名>=<新名> …]
+scripts/rename-screenshots.sh <images-dir> <docs-dir> <旧名>=<新名> [<旧名>=<新名> …]
 ```
 
 脚本只做**机械改名与改引用**；「识别截图内容 → 定功能名」仍由模型看图完成。

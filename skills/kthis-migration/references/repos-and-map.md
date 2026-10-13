@@ -96,7 +96,7 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 - `migration/README.md` —— 迁移文档总索引。
 - `migration/00-前端布局规范.md` —— 跨模块的**通用前端布局规范**（骨架 / 栅格 / 分区 / 组件映射 / 表格·按钮·尺寸约定 / 通用实现清单 / 验收清单），全仓库只一份，各模块分册引用而不重复。
 - `migration/<NN>-<模块名>/` —— 每个功能模块一个目录，按界面聚合、从 00 连续编号（00 总览与通用约定、01 主页面、各弹窗外壳 / 页签 / 辅助弹窗、数据流程与接口、迁移实施计划、共享分区与复用矩阵），可作为「按页签拆分」的参考范例。
-- `migration/images/` —— 遗留 SWT 截图，命名 `<功能序号>-<模块代号>-<界面英文名>.png`（模块用**新侧**代号）；**只用于核对标签与控件顺序**，完整功能以代码为准。截图识别 / 命名 / 引用规范见 `references/screenshots.md`，改可用 `scripts/rename-screenshots.sh`。
+- `migration/images/` —— 遗留 SWT 截图，命名 `<功能序号>-<模块代号>-<界面英文名>.png`（模块用**新侧**代号）；**只用于核对标签与控件顺序**，完整功能以代码为准。截图的识别 / 改名 / 引用更新属**文档阶段**，见 `kthis-migration-plan` 技能的 `references/screenshots.md` 与 `scripts/rename-screenshots.sh`。
 - `FrontNormalize.md` —— 前端开发规范（命名、组件用法、commit、复用优先/最小化 CSS）。
 - `referrence/layers&modules.md` —— model 生命周期/baseModel 继承/增强 effects/callService/putPromise/i18n。
 - `referrence/component_{form,layout,data,interaction,others}.md` —— 组件手册。

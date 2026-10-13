@@ -62,6 +62,8 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
     └── ..-独立/辅助弹窗、数据流程与接口、迁移实施计划、共享分区与复用矩阵
 ```
 
+（上图为**完整档**形态；册集按档位裁剪，见 §2.1。）
+
 每册固定：H1 `# <册号> · <册名>` → 导航行 `> 返回索引：[README](../README.md) ｜ 上一册：[..](..) ｜ 下一册：[..](..)` → 范围说明 blockquote → 正文章节。
 
 详细目录/册划分/命名/索引/截图约定 → 读 **[references/doc-structure.md](references/doc-structure.md)**。
@@ -72,8 +74,8 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 
 | 轮次 | 做什么 | 产出 / 确认点 |
 | --- | --- | --- |
-| R0 · 定界 | 确认模块（新侧代号）、范围、遗留入口、是否含多个编辑弹窗 | 范围与遗留入口（问用户） |
-| R1 · 册规划 | 盘点界面单元 → 排出「册规划表」 | **先给册规划表，等用户确认**再动手 |
+| R0 · 定界 | 确认模块（新侧代号）、范围、遗留入口、界面单元数量，并**定档位**（轻量 / 标准 / 完整，见 doc-structure §2.1） | 范围、遗留入口与档位（问用户） |
+| R1 · 册规划 | 按档位盘点界面单元 → 排出「册规划表」（**宁少勿多**，没有对应内容的册不建） | **先给册规划表，等用户确认**再动手 |
 | R2 · 搭骨架 | 用脚本生成骨架，写 `_进度台账.md` | 目录 + 空册 + 台账 |
 | R3+ · 逐册起草 | **一次一册**：读遗留源码 → 按模板填 → 交付该册 | 每册后**请用户批注** |
 | R3+ · 修订 | 按批注改；必要时用 `new-volume.sh` 插入/重排册 | 更新台账「修订记录」 |
@@ -99,6 +101,8 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 | `plan` | 迁移实施计划 / 阶段门禁 | `07-迁移实施计划.md.tpl` |
 | `matrix` | 共享分区与复用矩阵 | `08-共享分区与复用矩阵.md.tpl` |
 
+> 册集**按档位裁剪**（见 [references/doc-structure.md](references/doc-structure.md) §2.1）：`overview` / `main` / `shell` / `tab` 是常用核心；`dialog` / `aux` / `data` / `plan` / `matrix` **按需**——**没有对应内容就不建**（`matrix` 仅当确有跨界面共用内容；`aux` 仅当有辅助弹窗 / 码表）。简单功能 `00 总览 + 01 <界面>` 两册即可。
+
 模板在 `templates/`；写作口径（“功能行为而非遗留实现”、字段表/线框/事件表写法）→ 读 **[references/writing-rules.md](references/writing-rules.md)**。
 
 ## 脚本
@@ -112,6 +116,8 @@ $S/scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> --legacy-
   --volume "<页签乙>:tab" --volume "辅助弹窗与码表:aux" \
   --volume "数据流程与接口:data" --volume "迁移实施计划:plan" --volume "共享分区与复用矩阵:matrix"
 #   首次可用 --global-layout 生成跨模块的 00-前端布局规范.md
+#   轻量档（简单功能）：$S/scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> --lite
+#     （只生成 00-总览与通用约定.md + 01-功能说明.md；后续需要再用 new-volume.sh 增册）
 
 # 2) 迭代中插入一册（自动重排册号 + 重写导航与引用）
 $S/new-volume.sh --module-dir <迁移文档根目录>/<NN>-<模块名> --title "<册名>" --type tab --at 3
@@ -120,7 +126,13 @@ $S/new-volume.sh --module-dir <迁移文档根目录>/<NN>-<模块名> --title "
 $S/audit-docs.sh                       # 全量（跨册重复仅提示）
 $S/audit-docs.sh --module <NN>-<模块名> --strict
 $S/audit-docs.sh --strict --dup-strict --max-lines 450   # 收口前严格一遍
+
+# 4) 截图整理（用户把截图丢进 images/ 后：识别 → 按功能改名 → 同步引用）
+$S/rename-screenshots.sh --audit <迁移文档根目录>/images <迁移文档根目录>        # 审计：不合规命名 / 失效引用 / 未引用
+$S/rename-screenshots.sh <迁移文档根目录>/images <迁移文档根目录> "<旧名>=<新名>" …  # 机械改名 + 改全部文档引用
 ```
+
+> 截图改名只做机械部分；**「看图识别是哪个页面 / 页签 / 弹窗」由模型完成**，流程见 [references/screenshots.md](references/screenshots.md)。
 
 脚本只做机械搭建与校验；**内容由你必须逐册从遗留源码核实后填写**。
 
@@ -152,3 +164,5 @@ $S/audit-docs.sh --strict --dup-strict --max-lines 450   # 收口前严格一遍
 - [references/dialogue-workflow.md](references/dialogue-workflow.md) —— 多轮对话协议、提问模板、进度台账
 - [references/legacy-recon.md](references/legacy-recon.md) —— 遗留侧端到端盘点与 GBK 检索
 - [references/quality-gates.md](references/quality-gates.md) —— 验收门禁清单
+- [references/screenshots.md](references/screenshots.md) —— 截图（用户截图进 `images/` 后）识别、按功能命名与引用更新流程
+- [scripts/rename-screenshots.sh](scripts/rename-screenshots.sh) —— 截图批量改名 + 同步文档引用；`--audit` 审计命名/失效引用/未引用

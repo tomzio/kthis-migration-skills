@@ -7,13 +7,16 @@
 # 用法：
 #   scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> \
 #     [--legacy-ui <遗留入口>] \
-#     [--root docs/migration] [--force] \
+#     [--root docs/migration] [--force] [--lite] \
 #     --volume "<主页面>:main" --volume "<弹窗外壳>:shell" --volume "<页签>:tab" ...
 #
 # 册类型（template 名）：
 #   overview 总览与通用约定 | main 主页面 | shell 编辑弹窗外壳 | tab 页签
 #   dialog 独立弹窗 | aux 辅助弹窗与码表 | data 数据流程与接口 | plan 迁移实施计划 | matrix 共享分区与复用矩阵
 #   类型 overview 会自动补在最前（若未指定）。
+#
+# --lite：轻量档。未给 --volume 时默认单册「功能说明:main」；不提示缺失 data/plan。
+#         册集按档位裁剪（轻量 / 标准 / 完整）见 references/doc-structure.md §2.1。
 #
 # 另：--global-layout 可生成跨模块的 docs/migration/00-前端布局规范.md（仅第一次需要）。
 
@@ -26,11 +29,11 @@ TEMPLATES="${SKILL_DIR}/templates"
 DATE="$(date +%Y-%m-%d)"
 
 MOD_NO=""; MOD_NAME=""; MOD_CODE=""; LEGACY_UI="（待补）"
-MIG_DIR=""; FORCE=0; GLOBAL_LAYOUT=0
+MIG_DIR=""; FORCE=0; GLOBAL_LAYOUT=0; LITE=0
 declare -a VOLS=()
 
 usage() {
-  sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -43,6 +46,7 @@ while [ $# -gt 0 ]; do
     --root)          MIG_DIR="${2:-}"; shift 2 ;;
     --volume)        VOLS+=("${2:-}"); shift 2 ;;
     --force)         FORCE=1; shift ;;
+    --lite)          LITE=1; shift ;;
     --global-layout) GLOBAL_LAYOUT=1; shift ;;
     -h|--help)       usage ;;
     *) echo "未知参数：$1" >&2; usage ;;
@@ -74,6 +78,10 @@ subst() { # file key value
 }
 
 # ---- 组装册列表 ----
+# 轻量档未指定册时给一个默认正文册
+if [ "${#VOLS[@]}" = 0 ] && [ "${LITE}" = 1 ]; then
+  VOLS=("功能说明:main")
+fi
 # 确保有 overview 且在最前
 HAS_OVERVIEW=0
 for v in "${VOLS[@]:-}"; do
@@ -118,10 +126,14 @@ ref_of() { local want="${1}" j=0; while [ "${j}" -lt "${TOTAL}" ]; do if [ "${V_
 REF_OVERVIEW="$(ref_of overview)"; REF_MAIN="$(ref_of main)"
 REF_DATA="$(ref_of data)"; REF_PLAN="$(ref_of plan)"; REF_MATRIX="$(ref_of matrix)"
 
-# 提示缺失的常用册
-for t in data plan; do
-  [ "$(ref_of "${t}")" = "（无）" ] && echo "提示：未规划 '${t}' 类型册（通常应有）。" >&2
-done
+# 提示缺失的常用册（轻量档不提示）
+if [ "${LITE}" = 1 ]; then
+  echo "轻量档：只生成核心册；后续需要可用 new-volume.sh 增册。" >&2
+else
+  for t in data plan; do
+    [ "$(ref_of "${t}")" = "（无）" ] && echo "提示：未规划 '${t}' 类型册（通常应有）。" >&2
+  done
+fi
 
 # ---- 创建目录 ----
 mkdir -p "${MODULE_DIR}"

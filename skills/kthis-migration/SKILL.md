@@ -16,7 +16,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - 「按遗留代码实现 XX 页面 / 弹窗 / 接口」
 - 「XX 功能新侧怎么做、对应遗留哪里」
 - 为实现而**查阅**既有迁移设计文档 / 接口清单（`docs/migration/` 等）——本技能只查阅、不产出文档
-- 实现过程中引用遗留截图（按页面功能命名后引用）
+- 实现过程中**引用**既有遗留截图（截图的新增 / 改名 / 引用更新属**文档阶段**，见 `kthis-migration-plan` 技能的 `references/screenshots.md`）
 
 不用：
 - 单纯的新侧功能增改（没有遗留对应物）—— 直接按仓库规范做即可，但 `references/repos-and-map.md` 的命令与约定仍可参考
@@ -77,7 +77,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - 记录：字段清单与类型、码表与默认值、显隐/禁用/联动规则、校验与提示语、保存/更新/删除/调价的调用顺序与事务边界、用到的系统参数。
 - 对照仓库 `docs/migration/` 里对应分册，**但以源码复核**（截图只核对标签与控件顺序，不保证完整）。
 - 读遗留源码用 GBK 转码；按中文/标识符检索用 `scripts/grep-gbk.sh`。
-- **引用截图先识别再命名**：用 `read` 打开图片看清是哪个页面 / 页签 / 弹窗（含新增态或编辑态），按 `<功能序号>-<模块代号>-<界面英文名>.png` 改名后再写引用；`scripts/rename-screenshots.sh` 可批量改名并同步文档引用。
+- **引用截图**：截图（`docs/migration/images/`）只用于核对标签与控件顺序，完整功能以源码为准；需要新增 / 改名 / 更新引用时，按 `kthis-migration-plan` 技能的 `references/screenshots.md` + `scripts/rename-screenshots.sh` 处理（命名规则 `<功能序号>-<模块代号>-<界面英文名>.png`）。
 - 产出「证据笔记」：每条结论都标出来源文件（+ 关键行/方法），便于复核与写实现说明。
 
 方法、目录结构、GBK 命令、i18n 文案提取、Oracle 表结构对照 → 读 **[references/legacy-tracing.md](references/legacy-tracing.md)**。
@@ -139,10 +139,10 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 - [references/repos-and-map.md](references/repos-and-map.md) —— 三仓库与路径配置、各仓库命令、逐层映射、模块归属确认、迁移文档索引、已落地样例。
 - [references/legacy-tracing.md](references/legacy-tracing.md) —— 遗留侧端到端追踪方法与 GBK 检索。
-- [references/screenshots.md](references/screenshots.md) —— 截图自动识别、按页面功能命名与引用规范。
 - [references/backend-porting.md](references/backend-porting.md) —— 后端分层、四步加接口、鉴权、MyBatis、坑。
 - [references/frontend-porting.md](references/frontend-porting.md) —— **迁移特有**的前端落点与坑（通用规范以 `webhis-front` 技能 + `.agents/rules/*` 为准）。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) —— 在 GBK 遗留源码里按中文/标识符检索。
 - [scripts/setup-paths.sh](scripts/setup-paths.sh) —— 探测/校验/写出本机三仓库路径。
-- [scripts/rename-screenshots.sh](scripts/rename-screenshots.sh) —— 截图按功能改名 + 同步文档引用；`--audit` 审计命名/失效引用/未引用。
 - 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，被 `.gitignore` 忽略）；模板见 `.agents/paths.env.example`。
+
+> 截图（`docs/migration/images/`）的识别、按功能改名与引用更新属于**文档阶段**，用 `kthis-migration-plan` 技能的 `references/screenshots.md` + `scripts/rename-screenshots.sh`。
