@@ -37,13 +37,27 @@ browser_snapshot                  → 确认已进入主框架
 
 | 证据 | 工具（有 Playwright 时） | 落点 |
 | --- | --- | --- |
-| 界面截图 | `browser_take_screenshot`（`scale: "css"`，可给 `filename`） | `<前端>/.e2e/shots/`，**不要混进** `docs/migration/images/` |
+| 界面截图 | `browser_take_screenshot`（`scale: "css"`，可给 `filename`；**支持传 `element` 做局部截图**，见 §4.1） | `<前端>/.e2e/shots/`，**不要混进** `docs/migration/images/` |
 | 控制台报错 | `browser_console_messages`（`level: "error"`） | 纳入证据说明 |
 | 接口 4xx/5xx | `browser_network_requests`（按 URL 过滤接口）→ `browser_network_request` 看详情 | 纳入证据说明 |
 
 - **无 Playwright 时**：浏览器手动截图存到 `<前端>/.e2e/shots/`，控制台报错与接口 4xx/5xx 用 DevTools 的 Console / Network 面板查看。
 - 截图命名建议 `<模块>-<界面>-<态>.png`（`-page` / `-tab` / `-dialog`，新增态加 `add-`；与遗留截图命名口径一致，便于并排比对）。
 - **新侧截图与遗留截图分开放**：`docs/migration/images/` 只放遗留 SWT 截图（属文档阶段资产，见 `kthis-migration-plan` 技能的 `references/screenshots.md`）。
+
+### 4.1 局部（元素级）截图
+
+整页截图看**整体骨架**；要核对**表单行距 / 分区对齐 / 表格列顺序**时**直接截目标元素**，画面里只有那一块，比整页缩放着看准得多。
+
+- **Playwright MCP**：先 `browser_snapshot` 取到该元素的 `ref`，再 `browser_take_screenshot({ element: <ref>, scale: "css", filename: "<…>.png" })` —— 自动裁到元素边界。
+- **Playwright 代码**：`page.locator(sel).screenshot()`；要框「弹窗 + 周边」时用 `page.screenshot({ clip: { x, y, width, height } })`。
+- **锚点要语义化**，不要用 `nth-child` / 绝对坐标：
+  - 表单容器：`GridFormAntd` 渲染出的根节点，或页面自定义的根 class（BEM）
+  - 单个分区：`.ant-collapse-item`（配合分区标题文本定位）
+  - 弹窗：`.ant-modal-content`（要带底部按钮区就用 `.ant-modal`）
+  - 表格区：`.kt-tableScroll` 容器
+- **命名**：在 §4 的命名后加区域后缀 —— `<模块>-<界面>-<区域>.png`，区域用英文短词（`form` / `table` / `section-<名>` / `footer`）。
+- **好处**：元素级截图尺寸稳定，不受窗口大小、左树宽度、列表行数影响 —— 与遗留截图**并排比对行距 / 对齐**时不会因无关区域不同而误判。
 
 ## 5. 逐条实测清单（对照遗留 / 设计文档）
 
@@ -86,5 +100,5 @@ browser_snapshot                  → 确认已进入主框架
 - **菜单 / 路由由后端下发**，别凭模块名猜 URL；用可访问性树（Playwright `browser_snapshot`）或直接点菜单进入最稳。
 - **弹窗 / 深链不易直达**：从列表点进去（`browser_click`），再用 snapshot 逐层展开。
 - `browser_take_screenshot` 的 `scale` 必填，用 `"css"`；`browser_console_messages` 要传 `level`；`browser_network_requests` 要传 `static`。
-- 生产构建剥离所有 `console.log`，别指望上线后靠日志排查。
+- 生产构建剥离所有 `console.log`，别指望上线后靠日志排查。- 整页截图的高度会随**列表数据行数**变化，不适合逐像素比对行距 / 对齐 —— 这类核验用 §4.1 的元素级截图。
 - 会话过期会跳登录页；一旦 snapshot 看到登录页，**重新登录**再继续，别把重定向当成功能异常。
