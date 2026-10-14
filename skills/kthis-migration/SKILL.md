@@ -44,7 +44,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 2. **GBK ↔ UTF-8，绝不直接拷贝字节**。遗留是 Java 6 + GBK，新侧是 UTF-8（新侧前端 UTF-8、后端 UTF-8）。跨边界必须转码或重录中文，复制字节会得到乱码。
 3. **不要凭模块名猜归属**。模块编码有重命名、拆分、合并、新建，且可能存在「同名却无业务代码的空壳模块」；**必须读新侧代码确认**目标模块与包路径，不要按名字推断。
 
-补充：新侧**没有可用的测试框架**（`src/test/**/AppTest.java` 全是 `assertTrue(true)` 桩）。验证 = 静态检查 + 类型检查 + 起服务手测。不要声称「测试通过」。
+验证 = 静态检查 + 类型检查 + 起服务手测（后端 `./startup.sh dev` 起 9800；前端手测可用**可选**的 **Playwright MCP** 驱动浏览器；本地未装则手动走查，不阻塞，见 [references/e2e-verification.md](references/e2e-verification.md)）。不要声称「测试通过」。
 
 ## 三仓库与入口
 
@@ -114,7 +114,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 ### 阶段 5 · 验证门禁与提交
 - G1 静态检查：改动文件 `yarn lint:js` 无新增错误/警告；`npx tsc --noEmit -p tsconfig.root.json` 通过（跑完删除仓库根未跟踪的 `tsconfig.root.tsbuildinfo`）。
 - G2 构建：改了 `packages/*` 才需 `yarn build:deps`（否则主应用拿旧产物）。
-- G3 端到端手测：起 dev server（后端 9800 或本地 mock），按遗留/文档逐条实测，表现一致。
+- G3 端到端手测：起 dev server（前端 `yarn dev`；后端 `./startup.sh dev` 起 9800，或用本地 mock），按遗留/文档逐条实测，表现一致。留证可**手动在浏览器走查 + 人工截图**；本地若已装 **Playwright MCP**，可用 `browser_*` 工具驱动浏览器（登录 → 走到目标界面 → 截图 + `browser_console_messages` / `browser_network_requests` 采集报错与接口 4xx/5xx）再与遗留截图对比。新侧截图落 `<前端>/.e2e/shots/`，不要混进 `docs/migration/images/`。**Playwright 为可选项**：本地未安装 / 未配置时可询问用户，或直接手动走查，**不阻塞主任务**。清单（P1–P10）与证据格式见 **[references/e2e-verification.md](references/e2e-verification.md)**。
 - G4 无回归：重跑前序关键路径手测。
 - G5 评审确认：用户确认后再推进/提交。
 
@@ -145,6 +145,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - [references/backend-porting.md](references/backend-porting.md) —— 后端四模块分层、从零新建模块、四步加接口、active-record model、事务与异常、系统参数、MyBatis、鉴权、坑。
 - [references/backend-verification.md](references/backend-verification.md) —— 后端验证：启动、接口自测（E1–E7）、落库核对（D1–D8）、与遗留比对、证据留存格式。
 - [references/frontend-porting.md](references/frontend-porting.md) —— **迁移特有**的前端落点与坑（通用规范以 `webhis-front` 技能 + `.agents/rules/*` 为准）。
+- [references/e2e-verification.md](references/e2e-verification.md) —— 前端端到端验证（起服务走查、留证、采集报错）：清单（P1–P10）与证据留存格式；**Playwright MCP 为可选的浏览器驱动手段**。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) —— 在 GBK 遗留源码里按中文/标识符检索。
 - [scripts/setup-paths.sh](scripts/setup-paths.sh) —— 探测/校验/写出本机三仓库路径。
 - 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，被 `.gitignore` 忽略）；模板见 `.agents/paths.env.example`。

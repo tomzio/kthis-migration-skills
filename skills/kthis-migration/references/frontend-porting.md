@@ -71,3 +71,5 @@ yarn dev / yarn start                                 # 起 dev server 手测
 ```
 
 提交前手测：新增 / 编辑、必填 / 条件必填、显隐 / 禁用 / 联动、校验提示语、保存 / 删除 / 调价流程与遗留一致。dev 代理（`/his`、`/flow`、`/DCWriterDemo`）配在 `scripts/rspack.dev.js`，不在 `.env`。
+
+> 浏览器端到端走查可手动进行；本地若已装 **Playwright MCP**（`browser_*` 工具，**可选**），可自动驱动：登录一次 → 沿菜单/路由进入 → `browser_take_screenshot` 截图 + `browser_console_messages` / `browser_network_requests` 采集报错与接口 4xx/5xx。缺 Playwright 不阻塞，清单（P1–P10）与证据留存格式见 **[e2e-verification.md](e2e-verification.md)**。
