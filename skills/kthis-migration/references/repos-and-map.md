@@ -24,7 +24,7 @@
 | 新前端 WebHIS | `WEBHIS_FRONT_DIR` | React 18.3 + antd 4.24 + dva 3.0.0-alpha + @formily 2；rspack（dev）/ webpack（prod）；yarn workspaces monorepo |
 | 新后端 WebHIS | `WEBHIS_SERVER_DIR` | Spring Boot 2.7.8 + MyBatis（手写 XML）单体；Maven 多模块；Java 8 / UTF-8；入口 `webhis-starter-api`（端口 9800） |
 
-遗留侧入口说明（**若存在**）：`<遗留>/AGENTS.md`（与同目录 `CLAUDE.md` 内容相同，通常只含项目简介与架构速览；没有也不影响，直接读源码即可）。⚠️ 遗留侧**不一定**有迁移清单或原始分析文档；若另有 `docs/migration/` 之类的原始材料，只作**参考线索**，一律**以源码为准**。
+遗留侧入口说明（**若存在**）：`<遗留>/AGENTS.md`（通常只含项目简介与架构速览；没有也不影响，直接读源码即可）。⚠️ 遗留侧**不一定**有迁移清单或原始分析文档；若另有 `docs/migration/` 之类的原始材料，只作**参考线索**，一律**以源码为准**。
 
 ## 常用命令
 
