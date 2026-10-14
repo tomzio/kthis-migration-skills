@@ -1,6 +1,6 @@
 # 后端移植（webhis-server）
 
-> 仓库根 = **项目根** `.agents/paths.env` 的 `WEBHIS_SERVER_DIR`（每个开发者不同；缺失时跑 `scripts/setup-paths.sh` 生成）；下文路径均相对该根。
+> 仓库根 = 项目根 `.agents/paths.env` 的 `WEBHIS_SERVER_DIR`（细节见 [repos-and-map.md](repos-and-map.md) §路径配置）；下文路径均相对该根。
 
 把遗留 `server.*` impl / `dao/ibatis/maps` / 表映射为 WebHIS 后端接口。**Spring Boot 2.7.8 单体 + MyBatis 手写 XML**，Java 8 / UTF-8，入口 `webhis-starter-api`（端口 9800），URL 前缀 `/his/<mod>/...`。
 
@@ -41,6 +41,7 @@
 4. 需要新 SQL 时：DAO 加方法 + `resources/mapper/<Name>Dao.xml` 加 statement。
 
 约束与惯例：
+
 - **无统一 Result 包装**：controller 直接返回 VO / List / `PageableRespVo<T>`。仓库里**两种风格并存**（多数裸返回，少数 `CommonResult.success(...)`），新增时跟随所在模块的既有风格。
 - 分页：`PageableRespVo<T>` + `findPageableList(dao, "sqlId", params, pageable)`；PageHelper 方言固定 oracle。
 - 存储过程调用（如价格调整类）保留 `call(procName, params)` 形式。
@@ -80,28 +81,25 @@
 
 - mapper XML 放 `<mod>-server-impl/src/main/resources/mapper/*Dao.xml`（共享的放 `<mod>-common-server-impl`）；全局扫描配置 `classpath*:mapper/*Dao.xml`。
 - DAO：`@Repository class XDao extends MybatisBaseDao`，在方法里 `this.findList("sqlId", param)` / `findUnique` / `findRowCount` / `call(procName, params)`。
-- **没有开 `map-underscore-to-camel-case`** → 列名↔属性名必须**显式写 `<resultMap>`**（`resultType` 基本只用于标量，如 `java.lang.Integer` / `BigDecimal`）。Oracle 列名大写，注意别名与映射对齐。
+- **没有开 `map-underscore-to-camel-case`** → 列名 ↔ 属性名必须**显式写 `<resultMap>`**（`resultType` 基本只用于标量，如 `java.lang.Integer` / `BigDecimal`）。Oracle 列名大写，注意别名与映射对齐。
 - 分页：`PageableRespVo<E>`（`current` / `pageSize` / `total` / `results`）+ `findPageableList(dao, sqlId, params, pageable)`。
 - MyBatis-Plus 在依赖里但**业务不用**（不继承 `BaseMapper` / `ServiceImpl`），SQL 全走 `MybatisBaseDao` + 手写 XML。
 
 ## 9. iBATIS 2.x → MyBatis 3 改写
 
-| 遗留 iBATIS | MyBatis 3 |
-| --- | --- |
-| `#param#` | `#{param}` |
-| `$literal$` | `${literal}` |
-| `<isNotEmpty property="x">` | `<if test="x != null and x != ''">` |
-| `<dynamic prepend="WHERE">` | `<where>` / `<if>` |
+| 遗留 iBATIS                          | MyBatis 3                                                   |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `#param#`                            | `#{param}`                                                  |
+| `$literal$`                          | `${literal}`                                                |
+| `<isNotEmpty property="x">`          | `<if test="x != null and x != ''">`                         |
+| `<dynamic prepend="WHERE">`          | `<where>` / `<if>`                                          |
 | `resultClass` / `resultMap` 列名映射 | 显式 `<resultMap>`（无驼峰自动映射）；`resultType` 用于标量 |
 
 **安全**：`${...}` 拼接的表名 / 排序列必须做白名单校验，防注入（遗留 `$...$` 同样风险）。
 
 ## 10. 主数据通用约定
 
-- `defunct_ind` 逻辑删除（'Y'/'N'，默认过滤 'N'）；删除/停用走置 'Y'。
-- 审计字段 `created_by` / `created_date_time` / `last_updated_by` / `last_updated_date_time`（部分含 `cancelled_*`）由框架填，见 §4。
-- 多院区 `entity_mstr_id` 必须保留。
-- 编码/中文：**绝不直接拷贝遗留 GBK 字节**，转码或重录（新侧 UTF-8）。
+字段口径（`defunct_ind` 'Y'/'N' 与默认过滤、审计四字段、`entity_mstr_id`）见 [repos-and-map.md](repos-and-map.md) §主数据通用约定；**审计字段由框架自动填**（`setModified` 语义见 §4）。另一条硬约束：**绝不直接拷贝遗留 GBK 字节**，中文转码或重录（新侧 UTF-8）。
 
 ## 11. 认证与会话
 
@@ -140,4 +138,4 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 ## 14. 参考文档
 
 - `<后端>/AGENTS.md`（构建与运行、新增接口四步、白名单/`createSession`、模块归属）—— 最新最权威。
-- 仓库内 `<后端>/docs/<功能>/`（若存在：00 总览 / 01 表结构 / 02 接口 / 03 模型结构 / 04 清理记录）与接口清单类文档，**接口以它为准**。
+- `<后端>/docs/<功能>/`（若存在：00 总览 / 01 表结构 / 02 接口 / 03 模型结构 / 04 清理记录）与接口清单类文档，**接口以它为准**。

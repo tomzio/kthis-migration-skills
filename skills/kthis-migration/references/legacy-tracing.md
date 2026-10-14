@@ -4,7 +4,7 @@
 
 > 原则：**代码优先于文档**。文档与源码冲突时信源码。截图（`<前端>/docs/migration/images/`）只用于核对标签与控件顺序，完整功能以代码为准；截图的新增 / 改名 / 引用更新属**文档阶段**（见 `kthis-migration-plan` 技能的 `references/screenshots.md`）。
 
-> 路径说明：遗留仓库根目录由**项目根** `.agents/paths.env` 的 `KTHIS_LEGACY_DIR` 决定（缺失时跑 `scripts/setup-paths.sh` 生成）。下文 `<遗留>` 即该目录，`<skill根>` 指本 skill 根目录。
+> 路径：遗留仓库根 = 项目根 `.agents/paths.env` 的 `KTHIS_LEGACY_DIR`（缺配置跑 `scripts/setup-paths.sh`，细节见 [repos-and-map.md](repos-and-map.md) §路径配置）。下文 `<遗留>` 即该目录，`<skill根>` 指本 skill 根目录。
 
 ## 遗留架构速览
 
@@ -17,9 +17,7 @@
 | UI | `com.kompakar.ehealth.ui.<mod>.*` | SWT/JFace 视图（`plugin.xml` 扩展）；`.biz`=业务、`.mstr`=主数据维护 |
 | 三方库封装 | `com.kompakar.ehealth.lib.*` | hibernate/jdbc/poi/json… 的 jar 包装 |
 
-层后缀常见：`.common`（共享）、`.module`（核心）、`.biz`（上层业务）。
-通信：客户端把请求对象 Java 序列化后经 `com.kompakar.ehealth.frame.communicate.Communicate` POST 到服务端 `EntryServlet`；UI 调 `model.*` 的 `I*Service` 接口，服务端把 impl 装配为 Spring bean。
-核心基础项目：`com.kompakar.ehealth.base`（ThreadLocal `SessionFactory`、cache、i18n、base view）、`com.kompakar.ehealth.frame`（`Communicate`、`InvokeUtil`、日期/字符串工具）。
+层后缀常见：`.common`（共享）、`.module`（核心）、`.biz`（上层业务）。通信：客户端把请求对象 Java 序列化后经 `com.kompakar.ehealth.frame.communicate.Communicate` POST 到服务端 `EntryServlet`；UI 调 `model.*` 的 `I*Service` 接口，服务端把 impl 装配为 Spring bean。核心基础项目：`com.kompakar.ehealth.base`（ThreadLocal `SessionFactory`、cache、i18n、base view）、`com.kompakar.ehealth.frame`（`Communicate`、`InvokeUtil`、日期/字符串工具）。
 
 ## 定位入口：从界面到代码
 
@@ -30,7 +28,7 @@
 3. **顺着 UI go through**：SWT 视图 → 控件的监听事件（`SelectionListener` 等）→ 调用的 `action` / `I*Service` 方法。
 4. **找服务端实现**：在 `com.kompakar.ehealth.server.<mod>.<layer>` 找对应 `I*Service` 的 impl。
 5. **找 SQL**：impl 调 DAO → `dao/ibatis/maps/*.xml` 里的 statement（iBATIS），拿到表名、字段、过滤与连接条件。
-6. **对照表结构**：查 Oracle（连接串见 `<遗留>/eHealth/WebContent/WEB-INF/jdbc.properties`，只读）。
+6. **对照表结构**：查 Oracle（只读；连接串/账号见 [repos-and-map.md](repos-and-map.md) §常用命令）。
 
 跨模块调用走 `com.kompakar.ehealth.model.bridge` 的 `*BridgeService`；地区化 / 三方集成按地区或渠道拆分在 `model.interfaces.*` / `server.webservice.*`（命名常带地区或渠道标识）。
 
@@ -63,7 +61,7 @@ iconv -f GB18030 -t UTF-8 <文件> | less
 
 ```
 功能：<中文名>（遗留 Editor/Page ID）
-入口：<ui 插件路径/类> 
+入口：<ui 插件路径/类>
 链路：<视图类> → <事件/action> → <I*Service.method> → <server impl#method> → <mapper.xml#statement> → <表>
 字段：<字段中文 - 列名 - 类型 - 必填/默认/联动>  (来源: 文件:行)
 码表：<下拉/下拉 code 列表>  (来源: ...)
