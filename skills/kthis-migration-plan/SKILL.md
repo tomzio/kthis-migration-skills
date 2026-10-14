@@ -13,6 +13,8 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 >
 > 本机三仓库（遗留 / 前端 / 后端）的绝对路径见**项目根** `.agents/paths.env`（每个开发者不同；缺失时运行 `kthis-migration` 技能的 `scripts/setup-paths.sh`，或直接询问用户）；技能内不写死任何绝对路径。
 
+> **用法**：本文件只给「何时用 + 协作流程 + 脚本命令」；目录结构、册划分、写作口径等细节都在 `references/*`，**按需读取**，不要一次全读。
+
 ## 何时使用 / 不使用
 
 **用**：
@@ -49,24 +51,19 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 ## 产物形态
 
 ```text
-<迁移文档根目录>/            # 默认 docs/migration/
-├── README.md                 # 全局索引（多模块时按模块分节）
-├── 00-前端布局规范.md         # 跨模块，只一份（可选）
-├── images/                   # 全模块共享，命名 <功能序号>-<模块代号>-<界面英文名>.png
+<迁移文档根目录>/          # 默认 docs/migration/
+├── README.md              # 全局索引（多模块按模块分节）
+├── 00-前端布局规范.md      # 跨模块只一份（可选）
+├── images/                # 共享截图，命名 <功能序号>-<模块代号>-<界面英文名>.png
 └── <NN>-<模块名>/
-    ├── _进度台账.md             # 多轮协作台账（非正式册，不进索引）
-    ├── 00-总览与通用约定.md
-    ├── 01-主页面.md
-    ├── 02-<X>编辑弹窗外壳.md
-    ├── 03..N-<X>页签.md
-    └── ..-独立/辅助弹窗、数据流程与接口、迁移实施计划、共享分区与复用矩阵
+    ├── _进度台账.md        # 多轮协作台账（非正式册，不进索引）
+    ├── 00-总览与通用约定.md → 01-主页面.md → 02-<X>编辑弹窗外壳.md → 03..N-<X>页签.md
+    └── …独立/辅助弹窗、数据流程与接口、迁移实施计划、共享分区与复用矩阵（按需）
 ```
 
-（上图为**完整档**形态；册集按档位裁剪，见 §2.1。）
-
 每册固定：H1 `# <册号> · <册名>` → 导航行 `> 返回索引：[README](../README.md) ｜ 上一册：[..](..) ｜ 下一册：[..](..)` → 范围说明 blockquote → 正文章节。
-
-详细目录/册划分/命名/索引/截图约定 → 读 **[references/doc-structure.md](references/doc-structure.md)**。
+**册集按档位裁剪**（轻量 / 标准 / 完整）：`overview`/`main`/`shell`/`tab` 是核心，`dialog`/`aux`/`data`/`plan`/`matrix` 按需，**没有内容就不建**（`matrix` 仅当确有跨界面共用内容；`aux` 仅当有辅助弹窗 / 码表；简单功能 `00 + 01` 两册即可）。
+目录/册划分/命名/索引/导航/截图约定 → **[references/doc-structure.md](references/doc-structure.md)**（档位判定见其 §2.1）。
 
 ## 多轮协作流程（核心）
 
@@ -101,9 +98,7 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 | `plan` | 迁移实施计划 / 阶段门禁 | `07-迁移实施计划.md.tpl` |
 | `matrix` | 共享分区与复用矩阵 | `08-共享分区与复用矩阵.md.tpl` |
 
-> 册集**按档位裁剪**（见 [references/doc-structure.md](references/doc-structure.md) §2.1）：`overview` / `main` / `shell` / `tab` 是常用核心；`dialog` / `aux` / `data` / `plan` / `matrix` **按需**——**没有对应内容就不建**（`matrix` 仅当确有跨界面共用内容；`aux` 仅当有辅助弹窗 / 码表）。简单功能 `00 总览 + 01 <界面>` 两册即可。
-
-模板在 `templates/`；写作口径（“功能行为而非遗留实现”、字段表/线框/事件表写法）→ 读 **[references/writing-rules.md](references/writing-rules.md)**。
+模板在 `templates/`；写作口径（以「功能行为」而非遗留实现为准：字段表/线框/事件表写法）→ **[references/writing-rules.md](references/writing-rules.md)**。
 
 ## 脚本
 
@@ -147,15 +142,7 @@ $S/rename-screenshots.sh <迁移文档根目录>/images <迁移文档根目录> 
 
 ## 跨工具（OpenCode / Claude Code / Trae IDE）
 
-本技能是**项目级技能**，唯一原始目录为 `.agents/skills/kthis-migration-plan/`；其它工具目录是**指向它的软链接**，勿另存副本：
-
-| 工具 | 入口 |
-| --- | --- |
-| OpenCode | 根 `AGENTS.md` + `.agents/skills/`（原生按需加载） |
-| Claude Code | 根 `AGENTS.md` + `.claude/skills/kthis-migration-plan` → `.agents/skills/kthis-migration-plan` |
-| Trae IDE | `.trae/skills/kthis-migration-plan` → `.agents/skills/kthis-migration-plan` |
-
-具体接入与 Windows 软链接注意事项见仓库 `.agents/README.md`（`core.symlinks=false` 时软链接会退化为文本文件）。
+本技能是**项目级技能**，唯一原始目录 `.agents/skills/kthis-migration-plan/`，其它工具目录均为指向它的软链接（勿另存副本）；接入方式与 Windows 软链接注意事项见仓库 `.agents/README.md`。
 
 ## 参考文件
 

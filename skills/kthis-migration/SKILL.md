@@ -9,6 +9,8 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 **核心理念**：先把遗留功能端到端跑通、拿到证据，再动手写新代码；不要凭文档或截图臆测（冲突时的取舍见下方「三条硬约束」）。
 
+> **用法**：本文件只给「何时用 + 六阶段流程 + 门禁」；细节都在 `references/*`，**按阶段按需读取**，不要一次全读。
+
 ## 何时使用 / 何时不用
 
 用：
@@ -50,10 +52,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 迁移横跨三个仓库：**遗留 KTHIS/eHealth**（业务真源）、**webhis-front**（新前端）、**webhis-server**（新后端）。
 
-> ⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径。** 动手前先解析本机路径：
-> 1. 读**项目根** `.agents/paths.env`（唯一配置文件；键：`KTHIS_LEGACY_DIR` / `WEBHIS_FRONT_DIR` / `WEBHIS_SERVER_DIR`）。可用环境变量 `KTHIS_MIGRATION_CONFIG` 覆盖位置。
-> 2. 若缺失或路径已失效，运行 `scripts/setup-paths.sh`（自动探测并写出到项目 `.agents/paths.env`；也可 `--legacy/--front/--server <dir>` 显式指定、`--out <file>` 改写出位置），或直接问用户要路径。
-> 3. 本 skill 内的脚本与文档一律用这三个变量指代仓库；执行自带脚本时用「skill 根目录 + 相对路径」。
+> ⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径。** 动手前先读**项目根** `.agents/paths.env`（唯一配置文件；键 `KTHIS_LEGACY_DIR` / `WEBHIS_FRONT_DIR` / `WEBHIS_SERVER_DIR`；可用环境变量 `KTHIS_MIGRATION_CONFIG` 覆盖位置）。缺失或已失效时运行 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户要路径。本 skill 的脚本与文档一律用这三个变量指代仓库；执行自带脚本时用「skill 根目录 + 相对路径」。
 
 | 仓库 | 配置变量 | 角色 | AGENTS.md（权威） |
 | --- | --- | --- | --- |
@@ -77,7 +76,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - 记录：字段清单与类型、码表与默认值、显隐/禁用/联动规则、校验与提示语、保存/更新/删除/调价的调用顺序与事务边界、用到的系统参数。
 - 对照仓库 `docs/migration/` 里对应分册，**但以源码复核**（截图只核对标签与控件顺序，不保证完整）。
 - 读遗留源码用 GBK 转码；按中文/标识符检索用 `scripts/grep-gbk.sh`。
-- **引用截图**：截图（`docs/migration/images/`）只用于核对标签与控件顺序，完整功能以源码为准；需要新增 / 改名 / 更新引用时，按 `kthis-migration-plan` 技能的 `references/screenshots.md` + `scripts/rename-screenshots.sh` 处理（命名规则 `<功能序号>-<模块代号>-<界面英文名>.png`）。
+- **引用截图**：截图（`docs/migration/images/`）只用于核对标签与控件顺序，完整功能以源码为准；新增 / 改名 / 更新引用见 `kthis-migration-plan` 技能的 `references/screenshots.md`（命名规则 `<功能序号>-<模块代号>-<界面英文名>.png`）。
 - 产出「证据笔记」：每条结论都标出来源文件（+ 关键行/方法），便于复核与写实现说明。
 
 方法、目录结构、GBK 命令、i18n 文案提取、Oracle 表结构对照 → 读 **[references/legacy-tracing.md](references/legacy-tracing.md)**。
