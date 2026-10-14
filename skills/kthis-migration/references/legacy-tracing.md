@@ -51,7 +51,7 @@ iconv -f GB18030 -t UTF-8 <文件> | less
 
 ## 文案与码表
 
-- **界面文案/i18n 原文**在 `com.kompakar.ehealth.ui.i18n.message/src/com/kompakar/ehealth/ui/<mod>/<layer>/i18n/messages.properties`（GBK）。提取后按新侧组件 `message.json` 重录（UTF-8）。
+- **界面文案/i18n 原文**在 `com.kompakar.ehealth.ui.i18n.message/src/com/kompakar/ehealth/ui/<mod>/<layer>/i18n/messages.properties`（GBK）。提取后按新侧**菜单页面**的 `message.json` 重录（UTF-8，一个菜单页面一份）。
 - **码表/下拉**：记录遗留用的 code（常量类，`ICodeMstrConst` / `ICodeMstrDetailConst` / `ISysConst.IND_YES|IND_NO` 等）与展示值。新侧优先复用 `/his/common/dropdown/*` 与既有 search 接口，**code 与遗留保持一致**，不要自建字典。
 - **系统参数**：界面行为常由系统参数驱动（参数名多为 `<域>_<语义>` 形式的大写常量）。逐条记录参数名、取值域、影响，新侧用 `getParameters([...])` 读取（详见本模块 00/21 册的系统参数总表）。
 

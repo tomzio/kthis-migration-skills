@@ -2,7 +2,7 @@
 
 > 仓库根 = 项目根 `.agents/paths.env` 的 `WEBHIS_FRONT_DIR`（细节见 [repos-and-map.md](repos-and-map.md) §路径配置）；下文路径均相对该根。
 >
-> ⚠️ **通用规范以 `webhis-front` 技能 + 仓库 `.agents/rules/*` 为强制基准**（`FrontNormalize.md`、`page-norm.md`、`tableRule.md`、`componentUseRule.md`、`componentActionRule.md`、`servicesApiRule.md`、`pageStyleRule.md`）；**生成或修改前端代码必须遵循**，冲突时以它为准。本文件**只列迁移特有**的落点与坑。
+> ⚠️ **三份都是实现依据，按序读**：① **迁移文档的 `00-前端布局规范.md`**（界面骨架 / 栅格 / 分区 / 表格 / 按钮 / 尺寸的**具体数值**）；② **仓库 `.agents/rules/*`**（页面 / 样式 / 组件 / 表格 / 权限 / 请求层约束）；③ 本文件（迁移特有的落点与坑）。三者重叠处以 ② 为准。
 
 把遗留 SWT 界面重写为 React 页面/弹窗。**不追求像素级复刻**，按 antd 4 与本项目规范重组，但**控件元素、功能布局、业务逻辑必须与遗留一致**。
 
@@ -11,7 +11,6 @@
 - 页面/弹窗：`src/pages/<mod>/<feature>/`；模块服务层 `src/pages/<mod>/services/*.js`；注册表 `src/pages/<mod>/<mod>ComponentRegistry.js`。
 - 懒加载：`@loadable/component` + `src/pages/index.js` 的 `dynamicModule`；registry 的 `switch (componentId)` 返回 `{ component, model }`。
 - **`componentId` 必须三处完全一致（含大小写）**：注册表 `case`、`message.json` 的 `componentId`、`componentAction.ts` 的 `componentId`。不一致会导致 i18n / 权限**静默失效**。
-- 目录/命名/样式等通用规则 → 见 `webhis-front` 技能。
 
 ## 2. model 与弹窗
 
@@ -37,12 +36,12 @@
 
 ## 4. i18n（迁移特有：文案来源与分阶段）
 
-> **迁移实现阶段可先写中文字面量，便于开发调试；i18n 作为独立的后续阶段统一补齐。** （`message.json` / `createMessage` 的完整规范以 `webhis-front` 技能 + `.agents/rules/*` 为准）
+> **迁移实现阶段可先写中文字面量，便于开发调试；i18n 作为独立的后续阶段统一补齐。**
 
 - **何时做**：先把功能与交互跑通（文案直接写中文）；待该批界面稳定后，按「i18n 补齐」阶段统一抽成 `message.json`，不阻塞迁移进度。
 - **文案来源（补齐时）**：中文文案要从遗留 `messages.properties`（GBK）转码后重录，不要复制字节。
-- **补齐时**：每个组件一份 `message.json`：`{ componentId, zh_CN: {...}, en_US: {...} }`（**只写 `zh_CN` 即可**）；用 `createMessage` / `getCommonMessage` / `formatMessage`；文案要在**运行时动态取**（render 内 / effect 内），别在组件外部先取成常量，否则切语言不刷新。
-- **不要因 defer 而省**：注册表 `case` 与 `componentAction.ts` 的 `componentId` 仍须**先落地且一致**（权限与注册不依赖 i18n 文案）；补齐 i18n 时让 `message.json` 的 `componentId` 与之对齐，最终**三处完全一致（含大小写）**。
+- **补齐时**：**每个菜单页面（页面目录）一份 `message.json`**（主页面 / 弹窗 / 侧滑共用）：`{ componentId, zh_CN: {...}, en_US: {...} }`（**只写 `zh_CN` 即可**）；用 `createMessage` / `getCommonMessage` / `formatMessage`；文案要在**运行时动态取**（render 内 / effect 内），别在组件外部先取成常量，否则切语言不刷新。
+- **不要因 defer 而省**：注册与权限**不依赖文案** —— `componentId` 先落地（**三处一致**见 §1）；补齐 i18n 时再让 `message.json` 的 `componentId` 对齐。
 
 ## 5. 会踩的坑
 
@@ -52,14 +51,14 @@
 - 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**；改 `packages/*/src` 必须 `yarn build:deps`（或跑 `yarn dev`）才生效。
 - 生产构建剥离所有 `console.log`，调试日志别指望上线还在。
 - 路由 / 菜单由后端下发，URL 形如 `/index/:menu/:page`；model 不是自动注册，靠 `appRuntime.model(...)` 逐个注册。
-- **表单布局**：同一表单不要混用 `Field` 与 `FieldGroup`（`Form.Item` 自带 24px 底距、`FieldGroup` 没有 → 行距参差、看着没对齐）；左右对照列表要**固定高度**（`scroll.y` 只是 max-height）。细节见本文件 **§9**；目标仓库若有自己的强制版本（`.agents/rules/` 下的组件 / 样式规则），以它为准；**遇到没对齐的问题按 §8 处置顺序判断改哪里**。
+- **表单布局**：同一表单不要混用 `Field` 与 `FieldGroup`（`Form.Item` 自带 24px 底距、`FieldGroup` 没有 → 行距参差、看着没对齐）；左右对照列表要**固定高度**（`scroll.y` 只是 max-height）。细节见本文件 **§9**；**遇到没对齐的问题按 §8 处置顺序判断改哪里**。
 
 ## 6. 布局与样式
 
-> 完整规范以 `webhis-front` 技能 + 仓库 `.agents/rules/pageStyleRule.md`、`docs/FrontNormalize.md` 为准；迁移分册的排版对齐跨模块通用册 `docs/migration/00-前端布局规范.md`。
+> **排版与布局先看迁移文档的 `00-前端布局规范.md`**（骨架 / 栅格 / 分区 / 尺寸的具体数值都在那）；实现约束看 `.agents/rules/pageStyleRule.md` 与 `docs/FrontNormalize.md`。
 
 - 骨架：折叠查询表单 + 结果表格（分页 / 排序 / 状态切换）+ 左分类树 + 操作列；编辑用宽弹窗或多 Tab 表单，子弹窗独立打开。
-- **维护类列表页的表格与「操作」列（约定）**：结果表格**首部是「序号」列，紧跟其后是「操作」列**；操作列每个单元格放 **「编辑」「删除」**，按需再加其它动作（停用 / 启用 / 调价等）。**表单不放在列表页里** —— 新增 / 编辑统一走「添加 / 编辑」弹窗（同一个弹窗按入参区分新增与编辑），删除走二次确认。
+- **维护类列表页的表格与「操作」列（约定）**：结果表格**首部是「序号」列，紧跟其后是「操作」列**；操作列每个单元格放 **「编辑」「删除」**，按需再加其它动作（停用 / 启用 / 调价等）。**表单默认通过弹窗或侧滑抽屉打开**（不放在列表页 / 页面主体里）—— 新增 / 编辑统一走同一个「添加 / 编辑」弹窗（按入参区分），字段少用侧滑、字段多 / 多页签用弹窗；删除走二次确认。见 `00-前端布局规范.md` §3。
 - **布局紧凑（重点）**：表单用 `GridFormAntd`（`@/base/ui`），不要用零散 `Row`/`Col` 拼。`templateColumns` 里**标签列用 `auto`、控件列用 `minmax(0,1fr)`（不要裸 `1fr`）**，否则控件被拉满、留大片空白。密度：普通弹窗 / 页签**每行 3~4 对「标签 + 控件」**，密集页签 4 对，辅助弹窗至少 3 对；3 对 → `"auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr)"`，4 对 → 再重复一组。极短字段（年月 / 百分比 / 时长）用 `minmax(0,120px)` 限宽，**不要拉伸**；长文本（备注 / 诊断）才整行。同分区同行列对齐（标签宽统一、gutter 10）。参考实现：`src/pages/<mod>/<feature>/<XxxDialog>.jsx`（同一分区内 4 对/行）。**成组与对齐**：业务相关 / 事件联动的控件要挨在一起（勾选与联动控件、区间上下限、代码与名称）；同组字段不跨行拆散，放不下时整组挪行，必要时可适当调整控件顺序。
 - 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；最小化自定义 CSS，禁止 `!important`。
 - **「标签 / 文本 / 控件没对齐」类问题**（行距参差、留白怪异、控件被拉满等）→ 按 **§8 处置顺序**决定改哪里，不要上手就写 CSS 或改公用组件。
@@ -88,7 +87,7 @@ yarn dev / yarn start                                 # 起 dev server 手测
 
 ## 9. 表单布局与对齐（短规则）
 
-> 下面是**短小自洽**的规则（技能单独加载时也够用）；目标仓库若有自己的强制版本（`.agents/rules/` 下的组件 / 样式规则），**以它为准**。
+> 下面是**短小自洽**的规则（技能单独加载时也够用）。
 
 - **同一表单不要混用 `Field` 与 `FieldGroup`**：`Field`（栅格表单项）走 antd `Form.Item`，**自带 24px 底边距**（整行约 54px）；`FieldGroup`（栅格分组）**没有底边距**（整行约 30px）。混用 → 行高参差、看起来「标签 / 文本 / 控件没对齐」。行距统一由默认底边距提供，**不要**再写 `margin` / `padding` 去补。
 - **「只读文本 + 点击选择」用只读 `Input` + `suffix` 图标**，不要自建布局 div，也不要用 `FieldGroup` 拼：
@@ -108,3 +107,44 @@ yarn dev / yarn start                                 # 起 dev server 手测
   「输入 + 触发按钮」（如按内容生成助记码）同理用 `suffix` 图标，不要另起一行 `Button`。
 - **左右对照的列表必须等高**：`scroll.y` 只是 **max-height**，数据少时列表会塌陷、左右底部不齐 → 用**固定高度**（如两列表容器固定 360px），空态与有数据都要对齐；固定高度优先用组件现有 props，组件缺这个能力就按「公用组件增强」另立任务。表头不要被裁字：列宽按表头文字给足（`width` / `minWidth`）。
 - **修复后自查**：同一分区内各行行高 / 行距一致（浏览器量各行 y 坐标，确认间隔相等）；左右表 / 上下组件底部对齐，空态与有数据表现一致；`lint` 通过 + 浏览器实测走一遍交互闭环（打开弹窗 → 选择 → 回填）。
+
+## 10. 落地前自查清单
+
+写完一个界面（页面 / 弹窗 / 页签）**立刻**逐条核对 —— 每条都能在代码或截图上判定，不要靠「感觉差不多」。数值口径见迁移文档的 `00-前端布局规范.md`。
+
+**结构与列**
+- [ ] 表单在**弹窗 / 侧滑**里，不在页面主体；新增 / 编辑同一个弹窗（按入参区分）
+- [ ] 弹窗五段式：`Modal` > 顶部公共区 > `Tabs` > `Collapse` 分区 > 底部按钮区
+- [ ] 列表列顺序 **序号 → 操作（编辑 / 删除）→ 数据列**；序号跨页连续
+
+**栅格与分区**
+- [ ] 每行 **3~4 对**「标签 + 控件」（密集页签 4 对，辅助弹窗 ≥3 对）
+- [ ] `templateColumns`：标签列 `auto`、控件列 `minmax(0,1fr)`（**不裸用 `1fr`**）；极短字段 `minmax(0,120px)`
+- [ ] 同一分区标签宽统一；`gutter` 10；控件高 30px
+- [ ] 分区用 `Collapse ghost expandIconPosition="end"`；禁用用 `disabled`（不是 `visible`）
+
+**控件**
+- [ ] 同一表单**不混用** `Field` / `FieldGroup`（24px vs 0 底距，见 §9）
+- [ ] 「只读文本 + 点击选择」用只读 `Input` + `suffix` 图标，没有自建布局 div
+- [ ] `Input` 有 `maxLength`；`InputNumber` 有 min / max / precision；金额用 `TextAmount`
+- [ ] `ComboBox` 的必填 / 非必填空首项、`valueIsObject` 处理正确
+
+**表格与按钮**
+- [ ] `rowKey` 不用 index（必要时 `${id}_${index}`）；`VirtualTable` 的 `vid` 为 `模块_文件名_xxx`
+- [ ] `scroll={{ y }}` 配容器 `height: 100%`（`kt-tableScroll`）
+- [ ] 按钮颜色语义正确（危险操作用 `type="primary" danger` 等）
+- [ ] 底部按钮顺序与效果图一致、末尾「清除(L)」；快捷键标 `(A)` 并绑定 Alt+A；操作类按钮有防抖
+
+**样式**
+- [ ] 样式挂在页面根 class 下（BEM + CSS Modules）；**无 `!important`**；无内联硬编码宽高
+- [ ] 复用优先：公共组件 / 公共 class 都用上了，没自造轮子
+
+**可 grep 的自查**
+
+```sh
+grep -rn '!important' src/pages/<mod>/              # 应为 0
+grep -rn 'nth-child\|nth-of-type' src/pages/<mod>/  # 选择器应语义化
+grep -rnE 'width: ?[0-9]+px' src/pages/<mod>/       # 硬编码宽高逐条确认
+```
+
+静态检查与手测命令见 §7；截图与留证见 [e2e-verification.md](e2e-verification.md) §4.1（元素级截图）。

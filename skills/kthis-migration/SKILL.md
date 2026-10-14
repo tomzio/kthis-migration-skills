@@ -78,9 +78,15 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - model 继承基类（`@webhis/shared/app/model/*`）：页面 `extendPage`（需未保存校验用 `extendEditablePage`）、弹窗 `extendPopup` / `extendEditablePopup`、带患者条 `extendWpbPage`。
 - 请求走 `@webhis/shared/utils/request` 的 `get/post/postWithParam`（**最后参数必须传 `this`**）；弹窗统一 `app/openComponentPopup` + `componentId` 打开（`putPromise` 拿返回值），**禁止直接 import baseUi 的 Dialog**。
 - 权限：`componentAction.ts` 声明 actions（`require.context` 自动收集），model `init` 里 `mergeComponentAction` 合并；注册与权限不依赖文案，**先落地**。
-- i18n：**实现阶段可先写中文字面量（便于调试），功能稳定后再统一抽成 `message.json`**；补齐时 `componentId` 与注册表 case、`componentAction.ts` **三处完全一致（含大小写）**。
+- i18n：**实现阶段可先写中文字面量（便于调试）**；功能稳定后再按「i18n 补齐」阶段统一抽成 `message.json` —— 细则（每个菜单页面一份、`componentId` 三处一致）见 [references/frontend-porting.md](references/frontend-porting.md) §4。
 
-页面/弹窗骨架、effect 签名、注册三处一致、i18n 分阶段、布局与坑 → 读 **[references/frontend-porting.md](references/frontend-porting.md)**（通用规范以 `webhis-front` 技能 + `.agents/rules/*` 为准；复用优先、最小化自定义 CSS）。
+**动手写界面前，按这个顺序读完再动手**（第一次生成最常见的返工原因就是没读全这几份）：
+
+1. **迁移文档的布局规范**（本模块目录里的 `00-前端布局规范.md`，或迁移文档根的同名册）—— 界面长什么样、怎么排的**具体数值**全在这里（骨架、栅格每行几对、`templateColumns`、分区顺序、组件对照、表格与按钮约定、尺寸）。它是**当前界面的实现依据**，不是参考。
+2. **仓库 `.agents/rules/`**：`page-norm.md`（模型 / 注册 / effect / 弹窗打开）、`pageStyleRule.md`（样式与对齐）、`componentUseRule.md`（表单控件）、`tableRule.md`（表格）。
+3. **本技能 [references/frontend-porting.md](references/frontend-porting.md)** —— 迁移特有的落点与坑；末尾 **§8 处置顺序**、**§9 表单布局短规则**、**§10 落地前自查清单**。
+
+写完一个界面**立刻**按 §10 逐条自查，并做元素级截图与遗留截图并排比对（见 frontend-porting §7 与 e2e-verification §4.1）—— 不要等整个功能做完再统一查。
 
 ### 阶段 5 · 验证门禁与提交
 
@@ -118,3 +124,4 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - [references/e2e-verification.md](references/e2e-verification.md) —— 前端端到端验证：起服务走查、留证、采集报错；清单 P1–P10 与证据格式。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) / [scripts/setup-paths.sh](scripts/setup-paths.sh) —— GBK 遗留源码中文检索 / 探测并写出本机三仓库路径。
 - 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，已 gitignore）；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`。
+- **references/fast-path.md** —— 快速路径与准确性红线：哪些提速允许 / 禁止、免文档的适用判据。

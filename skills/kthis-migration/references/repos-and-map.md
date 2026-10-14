@@ -71,7 +71,7 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 | `context.xml`（Spring 2.x 装配） | 注解 DI（`@Autowired`/`@Service`），starter 扫描全部模块 |
 | `Communicate`/`EntryServlet` 序列化 HTTP | JSON REST `/his/<mod>/...`，前端用 `@webhis/shared/utils/request` |
 | `SessionFactory` ThreadLocal（当前用户/院区） | Spring Security + JWT（后端 `SessionFactory` ThreadLocal） |
-| 遗留 i18n `messages.properties`（GBK） | 前端组件级 `message.json`（UTF-8） |
+| 遗留 i18n `messages.properties`（GBK） | 前端**菜单页面级** `message.json`（UTF-8，主页面/弹窗/侧滑共用一份） |
 
 ## 模块编码：不要假设沿用
 
@@ -119,7 +119,7 @@ src/pages/<mod>/<feature>/
 ├── <Feature>Dialog.jsx             编辑弹窗外壳（多 Tab）
 ├── <feature>DialogModel.js         弹窗 model（extendEditablePopup）
 ├── componentAction.ts              权限/操作声明
-├── message.json / dialogMessage.json   i18n
+├── message.json        i18n（每个菜单页面一份，主页面/弹窗/侧滑共用）
 ├── sections/                       弹窗内共享分区（跨页签复用）
 └── tabs/                           各页签
 src/pages/<mod>/services/<feature>.js        服务层（/his/<mod>/**）
