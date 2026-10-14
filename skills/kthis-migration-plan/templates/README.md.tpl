@@ -34,13 +34,13 @@
 `images/` 收录遗留 SWT 截图，命名规则 `<功能序号>-<模块代号>-<界面英文名>.png`（如 `{{MODULE_NO}}-{{MODULE_CODE}}-drug-info-tab.png`）。截图目录可为迁移文档根目录下的共享 `images/`，也可放在本模块目录内的 `images/`（大模块可选），以仓库现状为准。
 
 | 截图 | 界面 | 说明 |
-| ---- | ---- | ---- |
-|      |      |      |
+| --- | --- | --- |
+|  |  |  |
 
 ## 逐层映射（遗留 → WebHIS）
 
 | 遗留 | WebHIS |
-| ---- | ------ |
+| --- | --- |
 | `ui.<mod>.*` SWT 视图 | `src/pages/<mod>/` React 页面 |
 | `model.*` action + `I*Service` | 后端 `webhis-<mod>-api` / `-server` |
 | `server.*` impl + iBATIS maps | `webhis-<mod>-server-impl` + MyBatis |

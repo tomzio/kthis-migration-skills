@@ -87,12 +87,12 @@
 
 ## 9. iBATIS 2.x → MyBatis 3 改写
 
-| 遗留 iBATIS                          | MyBatis 3                                                   |
-| ------------------------------------ | ----------------------------------------------------------- |
-| `#param#`                            | `#{param}`                                                  |
-| `$literal$`                          | `${literal}`                                                |
-| `<isNotEmpty property="x">`          | `<if test="x != null and x != ''">`                         |
-| `<dynamic prepend="WHERE">`          | `<where>` / `<if>`                                          |
+| 遗留 iBATIS | MyBatis 3 |
+| --- | --- |
+| `#param#` | `#{param}` |
+| `$literal$` | `${literal}` |
+| `<isNotEmpty property="x">` | `<if test="x != null and x != ''">` |
+| `<dynamic prepend="WHERE">` | `<where>` / `<if>` |
 | `resultClass` / `resultMap` 列名映射 | 显式 `<resultMap>`（无驼峰自动映射）；`resultType` 用于标量 |
 
 **安全**：`${...}` 拼接的表名 / 排序列必须做白名单校验，防注入（遗留 `$...$` 同样风险）。

@@ -6,11 +6,11 @@
 
 三个仓库的绝对路径因机器而异，统一从**项目根** `.agents/paths.env` 读取（唯一配置文件，本机私有、已 gitignore），不要假设固定路径：
 
-| 变量                | 仓库                          |
-| ------------------- | ----------------------------- |
-| `KTHIS_LEGACY_DIR`  | 遗留 KTHIS / eHealth 工作副本 |
-| `WEBHIS_FRONT_DIR`  | 新前端 webhis-front           |
-| `WEBHIS_SERVER_DIR` | 新后端 webhis-server          |
+| 变量 | 仓库 |
+| --- | --- |
+| `KTHIS_LEGACY_DIR` | 遗留 KTHIS / eHealth 工作副本 |
+| `WEBHIS_FRONT_DIR` | 新前端 webhis-front |
+| `WEBHIS_SERVER_DIR` | 新后端 webhis-server |
 
 - 生成 / 校验：`scripts/setup-paths.sh`（自动探测并写出到项目 `.agents/paths.env`；`--legacy/--front/--server <dir>` 显式指定；`--out <file>` 改写出位置；`--print` 仅查看当前值；`--detect` 只探测不写；`--force` 强制重探覆盖；`--help` 看全部）。
 - `.agents/paths.env` 是本机私有文件，已被 `.gitignore` 忽略；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`（可提交到仓库）。
