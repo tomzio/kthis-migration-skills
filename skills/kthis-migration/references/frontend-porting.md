@@ -52,7 +52,7 @@
 - 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**；改 `packages/*/src` 必须 `yarn build:deps`（或跑 `yarn dev`）才生效。
 - 生产构建剥离所有 `console.log`，调试日志别指望上线还在。
 - 路由 / 菜单由后端下发，URL 形如 `/index/:menu/:page`；model 不是自动注册，靠 `appRuntime.model(...)` 逐个注册。
-- **表单布局**：同一表单不要混用 `Field` 与 `FieldGroup`（`Form.Item` 自带 24px 底距、`FieldGroup` 没有 → 行距参差、看着没对齐）；左右对照列表要**固定高度**（`scroll.y` 只是 max-height）。细节见 `webhis-front` 技能的 `references/form-layout.md`，本仓库强制版在 `.agents/rules/componentUseRule.md` / `pageStyleRule.md`；**遇到没对齐的问题按 §8 处置顺序判断改哪里**。
+- **表单布局**：同一表单不要混用 `Field` 与 `FieldGroup`（`Form.Item` 自带 24px 底距、`FieldGroup` 没有 → 行距参差、看着没对齐）；左右对照列表要**固定高度**（`scroll.y` 只是 max-height）。细节见本文件 **§9**；目标仓库若有自己的强制版本（`.agents/rules/` 下的组件 / 样式规则），以它为准；**遇到没对齐的问题按 §8 处置顺序判断改哪里**。
 
 ## 6. 布局与样式
 
