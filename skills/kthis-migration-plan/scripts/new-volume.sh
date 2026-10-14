@@ -6,11 +6,16 @@
 # 用法：
 #   new-volume.sh --module-dir docs/migration/<NN>-<模块名> --title "<册名>" --type tab [--at 05]
 #
-#   --module-dir  模块目录（必填）
+#   --module-dir  模块目录（必填；技能不在仓库内时建议给完整路径）
 #   --title       册名（不含册号，必填）
 #   --type        册类型：main|shell|tab|dialog|aux|data|plan|matrix（必填）
 #   --at          插入为第几册（两位/一位数字，如 5）；省略则追加到末尾
 #   --dry-run     只打印将做的改动
+#
+# --module-dir 解析：给定路径存在则直接用；不存在时相对探测出的迁移文档根目录再试
+#   （探测顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
+#   或 docs/migration/）> 技能所在仓库根 ../../..）。
+# 技能不在仓库内（单独安装）时，请用 --module-dir <你的迁移文档根目录>/<NN-模块名> 显式指定。
 #
 # 会重命名后续册文件（git 跟踪的用 git mv）、重写册间导航、并全局替换 `NN-册名.md` 引用。
 
@@ -22,6 +27,26 @@ TEMPLATES="${SKILL_DIR}/templates"
 REPO_ROOT="$(cd "${SKILL_DIR}/../../.." && pwd -P)"
 DATE="$(date +%Y-%m-%d)"
 
+# ---- 迁移文档根目录探测（技能单独安装时也能工作）----
+# 顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
+#   或 docs/migration/）> 技能所在仓库根（存量约定）。
+detect_mig_dir() {
+  local d root
+  if [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ] \
+     && { [ -d "${KTHIS_PROJECT_ROOT}/docs" ] || [ -d "${KTHIS_PROJECT_ROOT}/.agents" ]; }; then
+    root="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+  fi
+  d="${PWD}"
+  while [ -n "${d}" ]; do
+    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then
+      root="$(cd "${d}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+    fi
+    [ "${d}" = "/" ] && break
+    d="$(dirname "${d}")"
+  done
+  printf '%s/docs/migration' "${REPO_ROOT}"
+}
+
 MOD_DIR=""; TITLE=""; TYPE=""; AT=""; DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -30,14 +55,28 @@ while [ $# -gt 0 ]; do
     --type)       TYPE="${2:-}"; shift 2 ;;
     --at)         AT="${2:-}"; shift 2 ;;
     --dry-run)    DRY=1; shift ;;
-    -h|--help)    sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)    sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "未知参数：$1" >&2; exit 2 ;;
   esac
 done
 [ -z "${MOD_DIR}" ] && { echo "错误：--module-dir 必填" >&2; exit 2; }
 [ -z "${TITLE}" ]   && { echo "错误：--title 必填" >&2; exit 2; }
 [ -z "${TYPE}" ]    && { echo "错误：--type 必填" >&2; exit 2; }
-[ -d "${MOD_DIR}" ] || { echo "错误：目录不存在 ${MOD_DIR}" >&2; exit 2; }
+# --module-dir 解析：直接路径优先（保留原语义）；不存在时相对探测出的迁移文档根目录再试
+if [ ! -d "${MOD_DIR}" ]; then
+  DETECTED_MIG="$(detect_mig_dir)"
+  DETECTED_ROOT="$(dirname "$(dirname "${DETECTED_MIG}")")"
+  if [ -d "${DETECTED_MIG}/${MOD_DIR}" ]; then
+    MOD_DIR="${DETECTED_MIG}/${MOD_DIR}"
+  elif [ -d "${DETECTED_ROOT}/${MOD_DIR}" ]; then
+    MOD_DIR="${DETECTED_ROOT}/${MOD_DIR}"
+  fi
+fi
+if [ ! -d "${MOD_DIR}" ]; then
+  echo "错误：模块目录不存在 ${MOD_DIR}" >&2
+  echo "      技能单独安装（不在仓库内）时，请用 --module-dir <你的迁移文档根目录>/<NN-模块名> 显式指定。" >&2
+  exit 2
+fi
 tpl_of() {
   case "${1}" in
     overview) echo "00-总览与通用约定.md.tpl" ;;

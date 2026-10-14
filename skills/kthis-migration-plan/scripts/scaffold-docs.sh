@@ -19,6 +19,10 @@
 #         册集按档位裁剪（轻量 / 标准 / 完整）见 references/doc-structure.md §2.1。
 #
 # 另：--global-layout 可生成跨模块的 docs/migration/00-前端布局规范.md（仅第一次需要）。
+#
+# --root 默认目录探测顺序：--root > $KTHIS_PROJECT_ROOT（含 docs 或 .agents）>
+#   当前目录逐级向上（含 .agents/ 或 docs/migration/）> 技能所在仓库根（../../..）。
+# 技能不在仓库内（单独安装）时，请用 --root <你的迁移文档根目录> 显式指定。
 
 set -u
 
@@ -28,12 +32,32 @@ REPO_ROOT="$(cd "${SKILL_DIR}/../../.." && pwd -P)"
 TEMPLATES="${SKILL_DIR}/templates"
 DATE="$(date +%Y-%m-%d)"
 
+# ---- 迁移文档根目录探测（技能单独安装时也能工作）----
+# 顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
+#   或 docs/migration/）> 技能所在仓库根（存量约定）。
+detect_mig_dir() {
+  local d root
+  if [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ] \
+     && { [ -d "${KTHIS_PROJECT_ROOT}/docs" ] || [ -d "${KTHIS_PROJECT_ROOT}/.agents" ]; }; then
+    root="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+  fi
+  d="${PWD}"
+  while [ -n "${d}" ]; do
+    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then
+      root="$(cd "${d}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+    fi
+    [ "${d}" = "/" ] && break
+    d="$(dirname "${d}")"
+  done
+  printf '%s/docs/migration' "${REPO_ROOT}"
+}
+
 MOD_NO=""; MOD_NAME=""; MOD_CODE=""; LEGACY_UI="（待补）"
 MIG_DIR=""; FORCE=0; GLOBAL_LAYOUT=0; LITE=0
 declare -a VOLS=()
 
 usage() {
-  sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -63,7 +87,12 @@ case "${MOD_NO}" in
        echo "错误：--no 应为 1~2 位数字（如 02）。" >&2; exit 1; fi ;;
 esac
 
-[ -z "${MIG_DIR}" ] && MIG_DIR="${REPO_ROOT}/docs/migration"
+if [ -z "${MIG_DIR}" ]; then
+  MIG_DIR="$(detect_mig_dir)"
+  if [ ! -d "${MIG_DIR}" ]; then
+    echo "提示：迁移文档目录 ${MIG_DIR} 不存在，将自动创建；技能单独安装（不在仓库内）时可用 --root <你的迁移文档根目录> 显式指定。" >&2
+  fi
+fi
 MIG_DIR="$(cd "${MIG_DIR}" 2>/dev/null && pwd -P || echo "${MIG_DIR}")"
 MODULE_DIR="${MIG_DIR}/${MOD_NO}-${MOD_NAME}"
 

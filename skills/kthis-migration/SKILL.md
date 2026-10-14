@@ -34,7 +34,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 ## 三仓库与入口
 
-迁移横跨遗留 KTHIS/eHealth（业务真源）、webhis-front（新前端）、webhis-server（新后端）。⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径**：从**项目根** `.agents/paths.env` 读 `KTHIS_LEGACY_DIR` / `WEBHIS_FRONT_DIR` / `WEBHIS_SERVER_DIR`（唯一配置文件，可用环境变量 `KTHIS_MIGRATION_CONFIG` 覆盖位置）；缺失或失效时运行 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户。执行自带脚本用「skill 根目录 + 相对路径」。
+迁移横跨遗留 KTHIS/eHealth（业务真源）、webhis-front（新前端）、webhis-server（新后端）。⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径**：从**项目根** `.agents/paths.env` 读 `KTHIS_LEGACY_DIR` / `WEBHIS_FRONT_DIR` / `WEBHIS_SERVER_DIR`（唯一配置文件，可用环境变量 `KTHIS_MIGRATION_CONFIG` 覆盖位置）；缺失或失效时运行 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户。路径配置模板随技能提供（`paths.env.example`）；项目 `.agents/` 缺失时 `scripts/setup-paths.sh` 会自动创建，并把模板落位到项目 `.agents/paths.env.example`。执行自带脚本用「skill 根目录 + 相对路径」。
 
 - 每个仓库的 `AGENTS.md` 是**最新、最权威的本地约定**，动手前先读对应仓库的那一份；本 skill 只做迁移流程的组织与速查。
 - 逐层映射、各仓库命令、模块改名速查、主数据通用约定、迁移文档索引、已落地样例 → 读 **[references/repos-and-map.md](references/repos-and-map.md)**。
@@ -117,4 +117,4 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - [references/frontend-porting.md](references/frontend-porting.md) —— **迁移特有**的前端落点与坑、布局 / 对齐问题的处置顺序。
 - [references/e2e-verification.md](references/e2e-verification.md) —— 前端端到端验证：起服务走查、留证、采集报错；清单 P1–P10 与证据格式。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) / [scripts/setup-paths.sh](scripts/setup-paths.sh) —— GBK 遗留源码中文检索 / 探测并写出本机三仓库路径。
-- 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，已 gitignore）；模板见 `.agents/paths.env.example`。
+- 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，已 gitignore）；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`。

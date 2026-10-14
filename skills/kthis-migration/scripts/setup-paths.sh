@@ -11,6 +11,11 @@
 #   scripts/setup-paths.sh --out <file>    # 指定写出位置（默认 <项目根>/.agents/paths.env）
 #   scripts/setup-paths.sh --force         # 即使配置已存在也重新探测覆盖
 #
+# 项目根定位（技能单独安装也适用）：技能所在仓库根（../../..，含 .agents/ 时）
+#   > 环境变量 KTHIS_PROJECT_ROOT > 当前目录逐级向上（找含 .agents/ 的目录）> 当前目录。
+# 项目根缺 .agents/ 时自动创建，并把技能自带 paths.env.example 落位为
+#   <项目根>/.agents/paths.env.example（已存在则不覆盖；建议提交到仓库）。
+#
 # 配置读取顺序：$KTHIS_MIGRATION_CONFIG / --out > <项目根>/.agents/paths.env（唯一配置文件）
 set -u
 
@@ -28,28 +33,46 @@ while [ $# -gt 0 ]; do
     --detect) DETECT_ONLY=1; shift ;;
     --print)  PRINT_ONLY=1;  shift ;;
     --force)  FORCE=1;       shift ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     *) echo "未知参数: $1（用 --help 查看用法）" >&2; exit 2 ;;
   esac
 done
 
-# ---- 定位项目根的 .agents/paths.env（技能位于 <项目根>/.agents/skills/kthis-migration 时）----
-PROJ_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
-PROJ_CFG=""
-if [ -n "$PROJ_ROOT" ] && [ -d "$PROJ_ROOT/.agents" ]; then
-  PROJ_CFG="$PROJ_ROOT/.agents/paths.env"
+# ---- 定位项目根（技能单独安装时也能工作）----
+# 顺序：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 当前目录向上找 .agents/ > 当前目录。
+PROJ_ROOT=""
+SKILL_REPO_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
+if [ -n "$SKILL_REPO_ROOT" ] && [ -d "$SKILL_REPO_ROOT/.agents" ]; then
+  PROJ_ROOT="$SKILL_REPO_ROOT"
+elif [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "$KTHIS_PROJECT_ROOT" ]; then
+  PROJ_ROOT="$(cd "$KTHIS_PROJECT_ROOT" && pwd -P)"
+else
+  d="$PWD"
+  while [ -n "$d" ]; do
+    if [ -d "$d/.agents" ]; then PROJ_ROOT="$d"; break; fi
+    [ "$d" = "/" ] && break
+    d="$(dirname "$d")"
+  done
+  if [ -z "$PROJ_ROOT" ]; then
+    PROJ_ROOT="$PWD"
+    echo "提示：未找到含 .agents/ 的项目根，以当前目录作为项目根：${PROJ_ROOT}" >&2
+  fi
 fi
 
-# ---- 写出位置 ----
+# ---- 自愈：项目根缺 .agents/ 时创建，并把技能自带的模板落位（已存在则不覆盖）----
+mkdir -p "$PROJ_ROOT/.agents"
+if [ -f "$SKILL_DIR/paths.env.example" ] && [ ! -f "$PROJ_ROOT/.agents/paths.env.example" ]; then
+  cp "$SKILL_DIR/paths.env.example" "$PROJ_ROOT/.agents/paths.env.example"
+  echo "已在 ${PROJ_ROOT}/.agents/ 放置模板 paths.env.example（建议提交到仓库）" >&2
+fi
+PROJ_CFG="$PROJ_ROOT/.agents/paths.env"
+
+# ---- 写出位置（--out / $KTHIS_MIGRATION_CONFIG 优先，其次项目根 .agents/paths.env）----
 if [ -z "$OUT" ]; then
   if [ -n "${KTHIS_MIGRATION_CONFIG:-}" ]; then
     OUT="$KTHIS_MIGRATION_CONFIG"
-  elif [ -n "$PROJ_CFG" ]; then
-    OUT="$PROJ_CFG"
   else
-    echo "✗ 未找到项目根 .agents/ 目录，无法确定配置写出位置。" >&2
-    echo "  请用 --out <file> 指定，或设置环境变量 KTHIS_MIGRATION_CONFIG。" >&2
-    exit 2
+    OUT="$PROJ_CFG"
   fi
 fi
 
@@ -84,7 +107,6 @@ fi
 candidate_roots() {
   printf '%s\n' \
     "$HOME/workspace/kthis" "$HOME/workspace" "$HOME/projects" "$HOME/dev" "$HOME/code" \
-    "/Volumes/backup/workspace/kthis" "/Volumes/backup/workspace" \
     "/data" "/workspace" "$HOME"
 }
 
@@ -99,6 +121,8 @@ detect_kind() {
 
   for root in $(candidate_roots); do
     [ -d "$root" ] || continue
+    # 消解软链：find 不会遍历符号链接形式的起始路径（如 ~/workspace → 实际数据盘）
+    root="$(cd "$root" && pwd -P)"
     while IFS= read -r d; do
       [ -z "$d" ] && continue
       if check_kind "$kind" "$d"; then (cd "$d" && pwd -P); return 0; fi
@@ -111,7 +135,7 @@ detect_kind() {
 [ -z "$FRONT" ]  && FRONT="$(detect_kind front || true)"
 [ -z "$SERVER" ] && SERVER="$(detect_kind server || true)"
 
-# 统一规范化为物理路径（消解软链，如 ~/workspace → /Volumes/...）
+# 统一规范化为物理路径（消解软链，如 ~/workspace 指向备份盘/挂载点时取其真实路径）
 canon() { if [ -n "$1" ] && [ -d "$1" ]; then (cd "$1" && pwd -P); else printf '%s' "$1"; fi; }
 LEGACY="$(canon "$LEGACY")"; FRONT="$(canon "$FRONT")"; SERVER="$(canon "$SERVER")"
 
@@ -143,7 +167,7 @@ if [ "$ok" != 1 ]; then
 
 未能确定全部路径。请显式指定后重试，例如：
   $0 --legacy <遗留dev路径> --front <webhis-front路径> --server <webhis-server路径>
-或直接编辑 ${OUT:-<项目根>/.agents/paths.env}（模板见 .agents/paths.env.example）。
+或直接编辑 ${OUT}（模板见 .agents/paths.env.example）。
 EOF
   exit 1
 fi

@@ -13,7 +13,7 @@
 | `WEBHIS_SERVER_DIR` | 新后端 webhis-server          |
 
 - 生成 / 校验：`scripts/setup-paths.sh`（自动探测并写出到项目 `.agents/paths.env`；`--legacy/--front/--server <dir>` 显式指定；`--out <file>` 改写出位置；`--print` 仅查看当前值；`--detect` 只探测不写；`--force` 强制重探覆盖；`--help` 看全部）。
-- `.agents/paths.env` 是本机私有文件，已被 `.gitignore` 忽略；模板见 `.agents/paths.env.example`。
+- `.agents/paths.env` 是本机私有文件，已被 `.gitignore` 忽略；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`（可提交到仓库）。
 - 下文凡写 `<遗留>` / `<前端>` / `<后端>`，均指上述变量解析出的绝对路径；执行 skill 自带脚本用「skill 根目录 + 相对路径」。
 
 ## 仓库

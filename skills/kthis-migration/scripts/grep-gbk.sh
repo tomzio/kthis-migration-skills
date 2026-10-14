@@ -7,6 +7,7 @@
 #
 # [dir] 省略时依次取：$KTHIS_LEGACY_DIR 环境变量 > 路径配置里的 KTHIS_LEGACY_DIR。
 # 路径配置读取顺序：KTHIS_MIGRATION_CONFIG > <项目根>/.agents/paths.env。
+# <项目根> 的确定：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 从当前目录逐级向上找含 .agents/ 或 docs/migration/ 的目录。
 # 请先运行 scripts/setup-paths.sh 生成配置（每个开发者路径可能不同）。
 #
 # 说明: 遗留源码是 GBK，中文无法被 grep/rg 直接命中（rg 本机通常也没装）。
@@ -18,11 +19,27 @@
 set -u
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJ_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
+# 项目根探测：技能所在仓库根 > KTHIS_PROJECT_ROOT > 当前目录逐级向上找 .agents/ 或 docs/migration/
+SKILL_REPO_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
+if [ -n "${SKILL_REPO_ROOT}" ] && [ -d "${SKILL_REPO_ROOT}/.agents" ]; then
+  PROJ_ROOT="${SKILL_REPO_ROOT}"
+elif [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ]; then
+  PROJ_ROOT="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"
+else
+  PROJ_ROOT=""
+  d="$PWD"
+  while [ -n "$d" ]; do
+    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then PROJ_ROOT="$d"; break; fi
+    [ "$d" = "/" ] && break
+    d="$(dirname "$d")"
+  done
+fi
 
 PATTERN="${1:?用法: grep-gbk.sh <pattern> [dir] [--files]}"
 DIR="${2:-}"
 MODE="${3:-}"
+# 允许省略 [dir] 直接使用 --files：grep-gbk.sh <pattern> --files
+if [ "$DIR" = "--files" ]; then MODE="$DIR"; DIR=""; fi
 
 if [ -z "$DIR" ]; then
   if [ -n "${KTHIS_LEGACY_DIR:-}" ]; then
@@ -41,8 +58,8 @@ fi
 
 if [ -z "$DIR" ]; then
   echo "未指定检索目录，且未配置 KTHIS_LEGACY_DIR。" >&2
-  echo "请先运行: ${SKILL_DIR}/scripts/setup-paths.sh" >&2
-  echo "或显式传入目录: grep-gbk.sh <pattern> <dir>" >&2
+  echo "请先运行: ${SKILL_DIR}/scripts/setup-paths.sh（会按需落位模板并生成 <项目根>/.agents/paths.env）" >&2
+  echo "也可设置 KTHIS_LEGACY_DIR / KTHIS_PROJECT_ROOT，或显式传入目录: grep-gbk.sh <pattern> <dir>" >&2
   exit 2
 fi
 

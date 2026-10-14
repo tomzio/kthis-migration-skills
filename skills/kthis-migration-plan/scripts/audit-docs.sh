@@ -4,7 +4,7 @@
 # 用法：
 #   audit-docs.sh [--docs-dir <docs/migration 目录>] [--module <02-模块目录名>] [--strict] [--max-lines <N>] [--dup-strict]
 #
-#   --docs-dir   默认 <仓库>/docs/migration
+#   --docs-dir   迁移文档根目录（默认按下方探测顺序确定；--root 为同义参数）
 #   --module     只审计指定模块目录（省略则审计全部 <NN-模块>/）
 #   --strict     把「警告」也视为失败（退出码 1）
 #   --max-lines  单册行数预算上限，默认 450（超出 → 警告，提示拆分或精简）
@@ -14,6 +14,10 @@
 #   加 --dup-strict 升级为警告；只保留一个家、其余改为链接。
 #   导航行 / 表格 / 标题 / 注释不参与重复检测。
 #
+# 默认目录探测顺序：--docs-dir / --root > $KTHIS_PROJECT_ROOT（含 docs 或 .agents）>
+#   当前目录逐级向上（含 .agents/ 或 docs/migration/）> 技能所在仓库根（../../..）。
+# 技能不在仓库内（单独安装）时默认目录可能不存在，请用 --docs-dir 显式指定迁移文档根目录。
+#
 # 退出码：0 通过；1 有错误（或 --strict 下有警告）。
 
 set -u
@@ -22,20 +26,46 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 REPO_ROOT="$(cd "${SKILL_DIR}/../../.." && pwd -P)"
 
+# ---- 迁移文档根目录探测（技能单独安装时也能工作）----
+# 顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
+#   或 docs/migration/）> 技能所在仓库根（存量约定）。
+detect_mig_dir() {
+  local d root
+  if [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ] \
+     && { [ -d "${KTHIS_PROJECT_ROOT}/docs" ] || [ -d "${KTHIS_PROJECT_ROOT}/.agents" ]; }; then
+    root="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+  fi
+  d="${PWD}"
+  while [ -n "${d}" ]; do
+    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then
+      root="$(cd "${d}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
+    fi
+    [ "${d}" = "/" ] && break
+    d="$(dirname "${d}")"
+  done
+  printf '%s/docs/migration' "${REPO_ROOT}"
+}
+
 DOCS_DIR=""; ONLY_MODULE=""; STRICT=0; MAX_LINES=450; DUP_STRICT=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --docs-dir) DOCS_DIR="${2:-}"; shift 2 ;;
+    --root)     DOCS_DIR="${2:-}"; shift 2 ;;
     --module)   ONLY_MODULE="${2:-}"; shift 2 ;;
     --max-lines) MAX_LINES="${2:-450}"; shift 2 ;;
     --dup-strict) DUP_STRICT=1; shift ;;
     --strict)   STRICT=1; shift ;;
-    -h|--help)  sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)  sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "未知参数：$1" >&2; exit 2 ;;
   esac
 done
-[ -z "${DOCS_DIR}" ] && DOCS_DIR="${REPO_ROOT}/docs/migration"
-[ -d "${DOCS_DIR}" ] || { echo "错误：目录不存在 ${DOCS_DIR}" >&2; exit 2; }
+[ -z "${DOCS_DIR}" ] && DOCS_DIR="$(detect_mig_dir)"
+if [ ! -d "${DOCS_DIR}" ]; then
+  echo "错误：未找到迁移文档目录 ${DOCS_DIR}" >&2
+  echo "      技能单独安装（不在仓库内）时，请用 --docs-dir <你的迁移文档根目录>（或 --root）显式指定，例如：" >&2
+  echo "      $0 --docs-dir <项目根>/docs/migration" >&2
+  exit 2
+fi
 DOCS_DIR="$(cd "${DOCS_DIR}" && pwd -P)"
 
 ERRORS=0; WARNS=0
