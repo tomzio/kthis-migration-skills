@@ -84,7 +84,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 1. **迁移文档的布局规范**（本模块目录里的 `00-前端布局规范.md`，或迁移文档根的同名册）—— 界面长什么样、怎么排的**具体数值**全在这里（骨架、栅格每行几对、`templateColumns`、分区顺序、组件对照、表格与按钮约定、尺寸）。它是**当前界面的实现依据**，不是参考。
 2. **仓库 `.agents/rules/`**：`page-norm.md`（模型 / 注册 / effect / 弹窗打开）、`pageStyleRule.md`（样式与对齐）、`componentUseRule.md`（表单控件）、`tableRule.md`（表格）。
-3. **本技能 [references/frontend-porting.md](references/frontend-porting.md)** —— 迁移特有的落点与坑；末尾 **§8 处置顺序**、**§9 表单布局短规则**、**§10 落地前自查清单**。
+3. **本技能 [references/frontend-porting.md](references/frontend-porting.md)** —— 迁移特有的落点与坑；末尾 **§8 处置顺序**、**§9 表单与对齐（迁移特有坑）**、**§10 落地前自查清单**。
 
 写完一个界面**立刻**按 §10 逐条自查，并做元素级截图与遗留截图并排比对（见 frontend-porting §7 与 e2e-verification §4.1）—— 不要等整个功能做完再统一查。
 

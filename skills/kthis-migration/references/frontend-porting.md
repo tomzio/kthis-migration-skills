@@ -4,7 +4,7 @@
 >
 > ⚠️ **三份都是实现依据，按序读**：① **迁移文档的 `00-前端布局规范.md`**（界面骨架 / 栅格 / 分区 / 表格 / 按钮 / 尺寸的**具体数值**）；② **仓库 `.agents/rules/*`**（页面 / 样式 / 组件 / 表格 / 权限 / 请求层约束）；③ 本文件（迁移特有的落点与坑）。三者重叠处以 ② 为准。
 
-把遗留 SWT 界面重写为 React 页面/弹窗。**不追求像素级复刻**，按 antd 4 与本项目规范重组，但**控件元素、功能布局、业务逻辑必须与遗留一致**。
+把遗留 SWT 界面重写为 React 页面/弹窗。**目标不是像素级复刻**：对照遗留截图与源码**核对**标签 / 控件顺序、分区顺序、字段栅格密度、控件类型与映射；**视觉按 antd 4 + 本项目规范 + 既有组件库 / 既有页面观感**实现；**控件元素、字段、功能布局、业务逻辑以遗留源码为准、必须一致**（截图可能不完整，仅作核对参照）。
 
 ## 1. 落点与注册
 
@@ -48,20 +48,16 @@
 - **禁止用 `updateState` 改二级数据结构**，复杂 state 变更写专门 reducer。
 - 表格 `key` 用 `${id}_${index}`，**不要用 index**；`VirtualTable` 的 `vid` 命名 `模块_文件名_xxx`。
 - ESLint 禁导：`moment`（用 dayjs）、`lodash` / `lodash/*`（用 `import { x } from 'lodash-es'`）、`@brickio/ui`（用 `@/base/ui`）。
-- 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**；改 `packages/*/src` 必须 `yarn build:deps`（或跑 `yarn dev`）才生效。
+- 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**；改 `packages/*/src` 不会即时生效，需重新构建（见 §7）。
 - 生产构建剥离所有 `console.log`，调试日志别指望上线还在。
 - 路由 / 菜单由后端下发，URL 形如 `/index/:menu/:page`；model 不是自动注册，靠 `appRuntime.model(...)` 逐个注册。
-- **表单布局**：同一表单不要混用 `Field` 与 `FieldGroup`（`Form.Item` 自带 24px 底距、`FieldGroup` 没有 → 行距参差、看着没对齐）；左右对照列表要**固定高度**（`scroll.y` 只是 max-height）。细节见本文件 **§9**；**遇到没对齐的问题按 §8 处置顺序判断改哪里**。
 
 ## 6. 布局与样式
 
-> **排版与布局先看迁移文档的 `00-前端布局规范.md`**（骨架 / 栅格 / 分区 / 尺寸的具体数值都在那）；实现约束看 `.agents/rules/pageStyleRule.md` 与 `docs/FrontNormalize.md`。
+> 排版 / 骨架 / 栅格 / 分区 / 表格 / 按钮 / 尺寸**一律以迁移文档的 `00-前端布局规范.md` 为准**；实现约束以 `.agents/rules/pageStyleRule.md`、`.agents/rules/tableRule.md`、`.agents/rules/page-norm.md` 与 `docs/FrontNormalize.md` 为准。本节只记迁移特有项。
 
-- 骨架：折叠查询表单 + 结果表格（分页 / 排序 / 状态切换）+ 左分类树 + 操作列；编辑用宽弹窗或多 Tab 表单，子弹窗独立打开。
-- **维护类列表页的表格与「操作」列（约定）**：结果表格**首部是「序号」列，紧跟其后是「操作」列**；操作列每个单元格放 **「编辑」「删除」**，按需再加其它动作（停用 / 启用 / 调价等）。**表单默认通过弹窗或侧滑抽屉打开**（不放在列表页 / 页面主体里）—— 新增 / 编辑统一走同一个「添加 / 编辑」弹窗（按入参区分），字段少用侧滑、字段多 / 多页签用弹窗；删除走二次确认。见 `00-前端布局规范.md` §3。
-- **布局紧凑（重点）**：表单用 `GridFormAntd`（`@/base/ui`），不要用零散 `Row`/`Col` 拼。`templateColumns` 里**标签列用 `auto`、控件列用 `minmax(0,1fr)`（不要裸 `1fr`）**，否则控件被拉满、留大片空白。密度：普通弹窗 / 页签**每行 3~4 对「标签 + 控件」**，密集页签 4 对，辅助弹窗至少 3 对；3 对 → `"auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr)"`，4 对 → 再重复一组。极短字段（年月 / 百分比 / 时长）用 `minmax(0,120px)` 限宽，**不要拉伸**；长文本（备注 / 诊断）才整行。同分区同行列对齐（标签宽统一、gutter 10）。参考实现：`src/pages/<mod>/<feature>/<XxxDialog>.jsx`（同一分区内 4 对/行）。**成组与对齐**：业务相关 / 事件联动的控件要挨在一起（勾选与联动控件、区间上下限、代码与名称）；同组字段不跨行拆散，放不下时整组挪行，必要时可适当调整控件顺序。
-- 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；最小化自定义 CSS，禁止 `!important`。
-- **「标签 / 文本 / 控件没对齐」类问题**（行距参差、留白怪异、控件被拉满等）→ 按 **§8 处置顺序**决定改哪里，不要上手就写 CSS 或改公用组件。
+- 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；能靠组件 props 表达的不写 CSS；禁止 `!important`。
+- 「标签 / 文本 / 控件没对齐」类问题按 **§8 处置顺序**判断改哪里，不要上手就写 CSS 或改公用组件。
 
 ## 7. 验证（无测试框架）
 
@@ -85,9 +81,9 @@ yarn dev / yarn start                                 # 起 dev server 手测
 3. **确实要改公用组件时，先量化引用面**：`grep` 统计全仓引用处数——引用面小、且改动能收敛问题（不扩散成新 props / 新分支）才改；引用面大（几十处以上）**不要顺手改**，把「公用组件增强」记为一个独立待办并说明。
 4. **页面级临时 CSS 是最后手段**：只在以上都不可行时使用，且要在代码注释 / MR 里写清为什么不能走前三条；作用域挂页面根 class、不用 `!important` 压制。
 
-## 9. 表单布局与对齐（短规则）
+## 9. 表单与对齐细则（迁移特有坑）
 
-> 下面是**短小自洽**的规则（技能单独加载时也够用）。
+> 通用栅格 / 密度 / 成组对齐见迁移文档的 `00-前端布局规范.md` §3.4；本节只记实现阶段特有的对齐坑。
 
 - **同一表单不要混用 `Field` 与 `FieldGroup`**：`Field`（栅格表单项）走 antd `Form.Item`，**自带 24px 底边距**（整行约 54px）；`FieldGroup`（栅格分组）**没有底边距**（整行约 30px）。混用 → 行高参差、看起来「标签 / 文本 / 控件没对齐」。行距统一由默认底边距提供，**不要**再写 `margin` / `padding` 去补。
 - **「只读文本 + 点击选择」用只读 `Input` + `suffix` 图标**，不要自建布局 div，也不要用 `FieldGroup` 拼：
@@ -116,6 +112,8 @@ yarn dev / yarn start                                 # 起 dev server 手测
 - [ ] 表单在**弹窗 / 侧滑**里，不在页面主体；新增 / 编辑同一个弹窗（按入参区分）
 - [ ] 弹窗五段式：`Modal` > 顶部公共区 > `Tabs` > `Collapse` 分区 > 底部按钮区
 - [ ] 列表列顺序 **序号 → 操作（编辑 / 删除）→ 数据列**；序号跨页连续
+- [ ] 页面不显示分区标题；列表页 = 查询条件 + 工具条（左查询 / 右按钮）+ 表格
+- [ ] 弹窗底部按钮居中（框架 `FooterPortal` / antd Modal footer 皆居中）
 
 **栅格与分区**
 - [ ] 每行 **3~4 对**「标签 + 控件」（密集页签 4 对，辅助弹窗 ≥3 对）
@@ -124,7 +122,7 @@ yarn dev / yarn start                                 # 起 dev server 手测
 - [ ] 分区用 `Collapse ghost expandIconPosition="end"`；禁用用 `disabled`（不是 `visible`）
 
 **控件**
-- [ ] 同一表单**不混用** `Field` / `FieldGroup`（24px vs 0 底距，见 §9）
+- [ ] 同一表单**不混用** `Field` / `FieldGroup`（见 §9）
 - [ ] 「只读文本 + 点击选择」用只读 `Input` + `suffix` 图标，没有自建布局 div
 - [ ] `Input` 有 `maxLength`；`InputNumber` 有 min / max / precision；金额用 `TextAmount`
 - [ ] `ComboBox` 的必填 / 非必填空首项、`valueIsObject` 处理正确
@@ -133,7 +131,8 @@ yarn dev / yarn start                                 # 起 dev server 手测
 - [ ] `rowKey` 不用 index（必要时 `${id}_${index}`）；`VirtualTable` 的 `vid` 为 `模块_文件名_xxx`
 - [ ] `scroll={{ y }}` 配容器 `height: 100%`（`kt-tableScroll`）
 - [ ] 按钮颜色语义正确（危险操作用 `type="primary" danger` 等）
-- [ ] 底部按钮顺序与效果图一致、末尾「清除(L)」；快捷键标 `(A)` 并绑定 Alt+A；操作类按钮有防抖
+- [ ] 行单击=单选；表头与单元格默认不折行；日期范围只到天；长文本列 `ellipsis` 悬浮完整
+- [ ] 底部按钮顺序与截图核对一致、末尾「清除(L)」；快捷键标 `(A)` 并绑定 Alt+A；操作类按钮有防抖
 
 **样式**
 - [ ] 样式挂在页面根 class 下（BEM + CSS Modules）；**无 `!important`**；无内联硬编码宽高

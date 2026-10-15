@@ -132,5 +132,5 @@ src/pages/<mod>/<mod>ComponentRegistry.js    组件注册表
 
 1. 读对应迁移分册，在遗留侧把功能端到端跑通：界面 → 事件 → 服务接口 → SQL → 表。
 2. 按映射表逐层移植到新侧（后端接口 + 前端页面/弹窗/model/注册/i18n）。
-3. 前端结构：折叠查询表单 + 结果表格 + 分类树 + 右侧抽屉或多 Tab 表单 + 操作列；骨架与排版细节见 [frontend-porting.md](frontend-porting.md) §6。
+3. 前端结构：折叠查询表单 + 结果表格 + 分类树 + 右侧抽屉或多 Tab 表单 + 操作列；骨架与排版细节见迁移文档的 `00-前端布局规范.md`。
 4. 页面/弹窗按 `componentId` 注册进 `<mod>ComponentRegistry.js`，弹窗用 `app/openComponentPopup` 打开。
