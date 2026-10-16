@@ -19,6 +19,9 @@
 
 set -u
 
+# 公共路径与函数（sed_inplace 等）
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
+
 NAME_RE='^[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)+\.(png|jpg|jpeg)$'
 DRY_RUN=0
 
@@ -45,13 +48,6 @@ for a in "$@"; do
 done
 
 # ---------- 工具函数 ----------
-# macOS 用 BSD sed（-i ''），Linux 用 GNU sed（-i）
-if sed --version >/dev/null 2>&1; then
-  sed_inplace() { sed -i "$@"; }
-else
-  sed_inplace() { sed -i '' "$@"; }
-fi
-
 is_git_repo() { git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1; }
 
 # 转义 sed 正则元字符

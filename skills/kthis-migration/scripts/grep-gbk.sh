@@ -18,22 +18,9 @@
 #       开 -e 会让脚本在第一个不匹配的文件处提前退出、什么都不输出。
 set -u
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# 项目根探测：技能所在仓库根 > KTHIS_PROJECT_ROOT > 当前目录逐级向上找 .agents/ 或 docs/migration/
-SKILL_REPO_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
-if [ -n "${SKILL_REPO_ROOT}" ] && [ -d "${SKILL_REPO_ROOT}/.agents" ]; then
-  PROJ_ROOT="${SKILL_REPO_ROOT}"
-elif [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ]; then
-  PROJ_ROOT="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"
-else
-  PROJ_ROOT=""
-  d="$PWD"
-  while [ -n "$d" ]; do
-    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then PROJ_ROOT="$d"; break; fi
-    [ "$d" = "/" ] && break
-    d="$(dirname "$d")"
-  done
-fi
+# 公共：SKILL_DIR 与项目根探测
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib-root.sh"
+PROJ_ROOT="$(detect_proj_root)"
 
 PATTERN="${1:?用法: grep-gbk.sh <pattern> [dir] [--files]}"
 DIR="${2:-}"
