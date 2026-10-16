@@ -22,29 +22,8 @@
 
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-REPO_ROOT="$(cd "${SKILL_DIR}/../../.." && pwd -P)"
-
-# ---- 迁移文档根目录探测（技能单独安装时也能工作）----
-# 顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
-#   或 docs/migration/）> 技能所在仓库根（存量约定）。
-detect_mig_dir() {
-  local d root
-  if [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ] \
-     && { [ -d "${KTHIS_PROJECT_ROOT}/docs" ] || [ -d "${KTHIS_PROJECT_ROOT}/.agents" ]; }; then
-    root="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
-  fi
-  d="${PWD}"
-  while [ -n "${d}" ]; do
-    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then
-      root="$(cd "${d}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
-    fi
-    [ "${d}" = "/" ] && break
-    d="$(dirname "${d}")"
-  done
-  printf '%s/docs/migration' "${REPO_ROOT}"
-}
+# 公共路径与函数（SCRIPT_DIR / detect_mig_dir 等）
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 
 DOCS_DIR=""; ONLY_MODULE=""; STRICT=0; MAX_LINES=450; DUP_STRICT=0
 while [ $# -gt 0 ]; do

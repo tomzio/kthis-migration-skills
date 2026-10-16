@@ -21,31 +21,8 @@
 
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-TEMPLATES="${SKILL_DIR}/templates"
-REPO_ROOT="$(cd "${SKILL_DIR}/../../.." && pwd -P)"
-DATE="$(date +%Y-%m-%d)"
-
-# ---- 迁移文档根目录探测（技能单独安装时也能工作）----
-# 顺序：$KTHIS_PROJECT_ROOT（含 docs 或 .agents）> 当前目录逐级向上（含 .agents/
-#   或 docs/migration/）> 技能所在仓库根（存量约定）。
-detect_mig_dir() {
-  local d root
-  if [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "${KTHIS_PROJECT_ROOT}" ] \
-     && { [ -d "${KTHIS_PROJECT_ROOT}/docs" ] || [ -d "${KTHIS_PROJECT_ROOT}/.agents" ]; }; then
-    root="$(cd "${KTHIS_PROJECT_ROOT}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
-  fi
-  d="${PWD}"
-  while [ -n "${d}" ]; do
-    if [ -d "${d}/.agents" ] || [ -d "${d}/docs/migration" ]; then
-      root="$(cd "${d}" && pwd -P)"; printf '%s/docs/migration' "${root}"; return 0
-    fi
-    [ "${d}" = "/" ] && break
-    d="$(dirname "${d}")"
-  done
-  printf '%s/docs/migration' "${REPO_ROOT}"
-}
+# 公共路径与函数（SCRIPT_DIR / TEMPLATES / DATE / detect_mig_dir / subst / tpl_of 等）
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 
 MOD_DIR=""; TITLE=""; TYPE=""; AT=""; DRY=0
 while [ $# -gt 0 ]; do
@@ -77,19 +54,6 @@ if [ ! -d "${MOD_DIR}" ]; then
   echo "      技能单独安装（不在仓库内）时，请用 --module-dir <你的迁移文档根目录>/<NN-模块名> 显式指定。" >&2
   exit 2
 fi
-tpl_of() {
-  case "${1}" in
-    overview) echo "00-总览与通用约定.md.tpl" ;;
-    main)     echo "01-主页面.md.tpl" ;;
-    shell)    echo "02-编辑弹窗外壳.md.tpl" ;;
-    tab)      echo "03-页签.md.tpl" ;;
-    dialog)   echo "04-独立弹窗.md.tpl" ;;
-    aux)      echo "05-辅助弹窗与码表.md.tpl" ;;
-    data)     echo "06-数据流程与接口.md.tpl" ;;
-    plan)     echo "07-迁移实施计划.md.tpl" ;;
-    matrix)   echo "08-共享分区与复用矩阵.md.tpl" ;;
-  esac
-}
 TPL="$(tpl_of "${TYPE}")"
 [ -n "${TPL}" ] && [ -f "${TEMPLATES}/${TPL}" ] || { echo "错误：未知册类型 '${TYPE}' 或无模板" >&2; exit 2; }
 
@@ -98,8 +62,6 @@ MOD_BASE="$(basename "${MOD_DIR}")"
 MIG_DIR="$(dirname "${MOD_DIR}")"
 MOD_NO="${MOD_BASE%%-*}"; MOD_NAME="${MOD_BASE#*-}"
 
-sed_inplace() { if sed --version >/dev/null 2>&1; then sed -i "${1}" "${2}"; else sed -i '' "${1}" "${2}"; fi; }
-subst() { local f="${1}" k="${2}" v="${3}" esc; esc="$(printf '%s' "${v}" | sed -e 's/[\\&|]/\\&/g')"; sed_inplace "s|${k}|${esc}|g" "${f}"; }
 git_tracked() { git -C "${MOD_DIR}" ls-files --error-unmatch "${1}" >/dev/null 2>&1; }
 do_rename() { local from="${1}" to="${2}"; if [ "${DRY}" = 1 ]; then echo "  mv ${from} -> ${to}"; return; fi
   if git_tracked "${from}"; then git -C "${MOD_DIR}" mv "${from}" "${to}"; else mv "${MOD_DIR}/${from}" "${MOD_DIR}/${to}"; fi; }

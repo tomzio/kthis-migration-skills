@@ -19,7 +19,8 @@
 # 配置读取顺序：$KTHIS_MIGRATION_CONFIG / --out > <项目根>/.agents/paths.env（唯一配置文件）
 set -u
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 公共：SKILL_DIR 与项目根探测
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib-root.sh"
 
 LEGACY=""; FRONT=""; SERVER=""
 DETECT_ONLY=0; PRINT_ONLY=0; FORCE=0; OUT=""
@@ -39,24 +40,10 @@ while [ $# -gt 0 ]; do
 done
 
 # ---- 定位项目根（技能单独安装时也能工作）----
-# 顺序：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 当前目录向上找 .agents/ 或 docs/migration/ > 当前目录。
-PROJ_ROOT=""
-SKILL_REPO_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
-if [ -n "$SKILL_REPO_ROOT" ] && [ -d "$SKILL_REPO_ROOT/.agents" ]; then
-  PROJ_ROOT="$SKILL_REPO_ROOT"
-elif [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "$KTHIS_PROJECT_ROOT" ]; then
-  PROJ_ROOT="$(cd "$KTHIS_PROJECT_ROOT" && pwd -P)"
-else
-  d="$PWD"
-  while [ -n "$d" ]; do
-    if [ -d "$d/.agents" ] || [ -d "$d/docs/migration" ]; then PROJ_ROOT="$d"; break; fi
-    [ "$d" = "/" ] && break
-    d="$(dirname "$d")"
-  done
-  if [ -z "$PROJ_ROOT" ]; then
-    PROJ_ROOT="$PWD"
-    echo "提示：未找到含 .agents/ 的项目根，以当前目录作为项目根：${PROJ_ROOT}" >&2
-  fi
+PROJ_ROOT="$(detect_proj_root)"
+if [ -z "$PROJ_ROOT" ]; then
+  PROJ_ROOT="$PWD"
+  echo "提示：未找到含 .agents/ 的项目根，以当前目录作为项目根：${PROJ_ROOT}" >&2
 fi
 
 # ---- 自愈：项目根缺 .agents/ 时创建，并把技能自带的模板落位（已存在则不覆盖）----
