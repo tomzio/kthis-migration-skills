@@ -12,7 +12,7 @@
 #   scripts/setup-paths.sh --force         # 即使配置已存在也重新探测覆盖
 #
 # 项目根定位（技能单独安装也适用）：技能所在仓库根（../../..，含 .agents/ 时）
-#   > 环境变量 KTHIS_PROJECT_ROOT > 当前目录逐级向上（找含 .agents/ 的目录）> 当前目录。
+#   > 环境变量 KTHIS_PROJECT_ROOT > 当前目录逐级向上（找含 .agents/ 或 docs/migration/ 的目录）> 当前目录。
 # 项目根缺 .agents/ 时自动创建，并把技能自带 paths.env.example 落位为
 #   <项目根>/.agents/paths.env.example（已存在则不覆盖；建议提交到仓库）。
 #
@@ -39,7 +39,7 @@ while [ $# -gt 0 ]; do
 done
 
 # ---- 定位项目根（技能单独安装时也能工作）----
-# 顺序：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 当前目录向上找 .agents/ > 当前目录。
+# 顺序：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 当前目录向上找 .agents/ 或 docs/migration/ > 当前目录。
 PROJ_ROOT=""
 SKILL_REPO_ROOT="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd -P || true)"
 if [ -n "$SKILL_REPO_ROOT" ] && [ -d "$SKILL_REPO_ROOT/.agents" ]; then
@@ -49,7 +49,7 @@ elif [ -n "${KTHIS_PROJECT_ROOT:-}" ] && [ -d "$KTHIS_PROJECT_ROOT" ]; then
 else
   d="$PWD"
   while [ -n "$d" ]; do
-    if [ -d "$d/.agents" ]; then PROJ_ROOT="$d"; break; fi
+    if [ -d "$d/.agents" ] || [ -d "$d/docs/migration" ]; then PROJ_ROOT="$d"; break; fi
     [ "$d" = "/" ] && break
     d="$(dirname "$d")"
   done

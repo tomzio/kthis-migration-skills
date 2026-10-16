@@ -72,7 +72,7 @@ ERRORS=0; WARNS=0
 err()  { echo "  [错误] $*"; ERRORS=$((ERRORS+1)); }
 warn() { echo "  [警告] $*"; WARNS=$((WARNS+1)); }
 
-IMG_NAME_RE='^[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*\.(png|jpg|jpeg)$'
+IMG_NAME_RE='^[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)+\.(png|jpg|jpeg)$'
 
 audit_module() {
   local dir="${1}" mod; mod="$(basename "${dir}")"
@@ -157,7 +157,7 @@ audit_module() {
 }
 
 # 跨册重复检测：同一句解释性内容出现在多册 → 「一册一个家」违规。
-# 规则可自洽（短规则允许各自重述），此处只针对 ≥60 字节的解释性整句。
+# 规则可自洽（短规则允许各自重述），此处只针对 ≥90 字节的解释性整句。
 audit_duplicates() {
   echo "== 跨册重复（一册一个家）=="
   local mods=("$@") rows dup tmp

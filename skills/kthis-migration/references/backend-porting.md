@@ -116,13 +116,12 @@
 - 包名多为 `com.karrytech.webhis.<mod>`，但个别模块（如 emr / record）仍是 `com.karrytech.his.*`；`webhis-common-*` 里还留着 `com.kompakar.ehealth.base.util`。
 - 响应形态不统一（裸对象/数组 vs `{code,data}` / `CommonResult.success`），前端按各端点实际形态处理。
 - 启动器只依赖各域的 `-api` 与 `-server-impl`；新建域时漏了这一步，接口会 404。
-- 构建需 **JDK 8**；必须用仓库根 `settings.xml`（内网 Nexus，闭源框架 jar 只在那里）。
 - `application-jdbc.properties` 可能有未解决的 Git 冲突标记，**改库配置前看清实际生效行**。
-- macOS 下 Oracle 连内网库要 `startup.sh` 里的 no-socks-proxy `-javaagent`，勿删 `tools/no-socks-proxy-agent.jar`。
 
 ## 13. 构建与运行
 
 ```sh
+./startup.sh            # 无参 = build（clean compile package 跳过测试后起 jar）
 ./startup.sh dev        # mvn install -pl webhis-starter-api -am + spring-boot:run
 ./startup.sh build      # clean compile package（跳过测试）后起 jar
 ./startup.sh start      # 不重编译，直接起已有 jar（可跟 debug）
@@ -133,7 +132,8 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 ```
 
 - 端口 9800；Swagger `http://<host>:9800/swagger-ui/index.html`（按域分组）。
-- 无真实测试（各 `AppTest` 是桩），一律 `-Dmaven.test.skip=true`；**不要声称测试通过**。验证见 **[backend-verification.md](backend-verification.md)**。
+- **环境要求**：需 **JDK 8**（`mvn` 默认 JDK 21 会编译失败，`JAVA_HOME` 指向 jdk-1.8）；必须用仓库根 `settings.xml`（内网 Nexus `maven.karrytech.com`，闭源 `com.karrytech.*` 制品只在那里）；macOS 连内网 Oracle 会被系统 SOCKS 代理干扰，`startup.sh` 用 `tools/no-socks-proxy-agent.jar`（`-javaagent`）清除，勿删。
+- 无真实测试（各 `AppTest` 是桩），一律 `-Dmaven.test.skip=true`；验证见 **[backend-verification.md](backend-verification.md)**。
 
 ## 14. 参考文档
 

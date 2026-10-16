@@ -13,7 +13,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 ## 何时使用 / 何时不用
 
-- **用**：「把遗留系统的 XX 功能迁移 / 重写到新前端 / 后端」「按遗留代码实现 XX 页面 / 弹窗 / 接口」「XX 功能新侧怎么做、对应遗留哪里」；为实现而**查阅**既有迁移设计文档 / 接口清单（`docs/migration/` 等）—— 本技能只查阅、不产出文档。
+- **用**：「把遗留系统的 XX 功能迁移 / 重写到新前端 / 后端」「按遗留代码实现 XX 页面 / 弹窗 / 接口」「XX 功能新侧怎么做、对应遗留哪里」；为实现而**查阅**既有迁移设计文档 / 接口清单（`docs/migration/` 等）—— 本技能以查阅为主、不独立撰写交付文档（实现中的就地小额订正除外，见「分工口径」）。
 - **不用**：单纯的新侧功能增改（没有遗留对应物）—— 直接按仓库规范做即可，但 `references/repos-and-map.md` 的命令与约定仍可参考；遗留系统自身的维护 / 编译；**只写 / 改迁移设计文档、整理截图** —— 用 `kthis-migration-plan` 技能。
 
 ## 与其他技能的关系（迁移分两段）
@@ -21,7 +21,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 迁移按「**先设计文档，后编码实现**」两段推进，本技能负责**第二段：编码实现** —— 后端 `webhis-<mod>-*` 接口 + 前端 `src/pages/<mod>/` 页面/弹窗/model/注册/i18n + 按门禁验证。
 
 - **分工口径**：说「写 / 生成 / 整理迁移文档、详细设计、分册、实施计划」→ 用 `kthis-migration-plan`（产出 `docs/migration/<NN-模块>/` 分册设计文档：界面布局、字段/控件、UI 交互、关联事件、接口清单、实施计划与阶段门禁）；说「实现 / 迁移 / 还原这个功能、写页面 / 弹窗 / 接口」→ 用本技能。
-- 开工前先读设计文档（若已有）：它决定页面拆分、字段与控件顺序、事件清单；实现中若发现文档与遗留源码不符，**回改设计文档**（文档是实现的唯一依据）。没有文档也可直接实现，但建议先用 `kthis-migration-plan` 补齐，降低返工。
+- 开工前先读设计文档（若已有）：它决定页面拆分、字段与控件顺序、事件清单，是实现的**首要依据**；但优先级为 **遗留源码 > 设计文档 > 截图**——实现中若发现文档与源码不符，**以源码为准并就地回改文档**（改动较大时转 `kthis-migration-plan`）。没有文档也可直接实现，但建议先用 `kthis-migration-plan` 补齐，降低返工。
 - 遗留截图（`docs/migration/images/`）的识别 / 改名 / 引用更新属**文档阶段**，见 `kthis-migration-plan` 技能的 `references/screenshots.md`。
 
 > **前端规范是强制基准**：只要生成或修改前端代码，就必须遵循 **`webhis-front` 技能 + 仓库 `.agents/rules/*`**（`FrontNormalize.md`、`page-norm.md`、`tableRule.md`、`componentUseRule.md`、`componentActionRule.md`、`servicesApiRule.md`、`pageStyleRule.md`）。两个迁移技能都是**可选**加速器，冲突时以 `webhis-front` / `.agents/rules/` 为准。
@@ -34,7 +34,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 ## 三仓库与入口
 
-迁移横跨遗留 KTHIS/eHealth（业务真源）、webhis-front（新前端）、webhis-server（新后端）。⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径**：从**项目根** `.agents/paths.env` 读 `KTHIS_LEGACY_DIR` / `WEBHIS_FRONT_DIR` / `WEBHIS_SERVER_DIR`（唯一配置文件，可用环境变量 `KTHIS_MIGRATION_CONFIG` 覆盖位置）；缺失或失效时运行 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户。路径配置模板随技能提供（`paths.env.example`）；项目 `.agents/` 缺失时 `scripts/setup-paths.sh` 会自动创建，并把模板落位到项目 `.agents/paths.env.example`。执行自带脚本用「skill 根目录 + 相对路径」。
+迁移横跨遗留 KTHIS/eHealth（业务真源）、webhis-front（新前端）、webhis-server（新后端）。⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径**：统一从**项目根** `.agents/paths.env` 读三个 `*_DIR` 变量；缺失 / 失效时跑 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户 —— 变量名、脚本参数与模板细节见 [references/repos-and-map.md](references/repos-and-map.md) §路径配置。执行自带脚本用「skill 根目录 + 相对路径」。
 
 - 每个仓库的 `AGENTS.md` 是**最新、最权威的本地约定**，动手前先读对应仓库的那一份；本 skill 只做迁移流程的组织与速查。
 - 逐层映射、各仓库命令、模块改名速查、主数据通用约定、迁移文档索引、已落地样例 → 读 **[references/repos-and-map.md](references/repos-and-map.md)**。
@@ -76,7 +76,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 - 懒加载 + 注册：`@loadable/component` + `dynamicModule`，在 `<mod>ComponentRegistry.js` 注册。
 - model 继承基类（`@webhis/shared/app/model/*`）：页面 `extendPage`（需未保存校验用 `extendEditablePage`）、弹窗 `extendPopup` / `extendEditablePopup`、带患者条 `extendWpbPage`。
-- 请求走 `@webhis/shared/utils/request` 的 `get/post/postWithParam`（**最后参数必须传 `this`**）；弹窗统一 `app/openComponentPopup` + `componentId` 打开（`putPromise` 拿返回值），**禁止直接 import baseUi 的 Dialog**。
+- 请求走 `@webhis/shared/utils/request` 的 `get/post/postWithParameter`（**最后参数必须传 `this`**）；弹窗统一 `app/openComponentPopup` + `componentId` 打开（`putPromise` 拿返回值），**禁止直接 import baseUi 的 Dialog**。
 - 权限：`componentAction.ts` 声明 actions（`require.context` 自动收集），model `init` 里 `mergeComponentAction` 合并；注册与权限不依赖文案，**先落地**。
 - i18n：**实现阶段可先写中文字面量（便于调试）**；功能稳定后再按「i18n 补齐」阶段统一抽成 `message.json` —— 细则（每个菜单页面一份、`componentId` 三处一致）见 [references/frontend-porting.md](references/frontend-porting.md) §4。
 
@@ -109,9 +109,9 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 **后端 / 数据**（细节见 [references/backend-porting.md](references/backend-porting.md)）
 
-- 响应形态不统一：有的 controller 返回裸对象/数组（无 `{code,data}`、无分页 total），写前端请求层前先看具体 controller；无全局 `@ControllerAdvice`，业务直接 `throw new BizException(...)`。
-- 模块名 ≠ 业务归属；包名多为 `com.karrytech.webhis.<mod>`，个别模块例外（先读代码）。
-- 构建需 **JDK 8**；必须用仓库根 `settings.xml`（内网 Nexus）。
+- 响应形态不统一：**多数** controller 返回裸对象/数组（无 `{code,data}`、无分页 total），**少数**包 `CommonResult.success(...)`；写前端请求层前先看具体 controller。无全局 `@ControllerAdvice`，业务直接 `throw new BizException(...)`。
+- 包名多为 `com.karrytech.webhis.<mod>`，个别模块例外（先读代码）；**模块名 ≠ 业务归属**（硬约束 3）。
+- 构建 / 运行环境（JDK 8、仓库根 `settings.xml`/内网 Nexus、端口 9800 等）见 [backend-porting.md](references/backend-porting.md) §13。
 - iBATIS `#param#` / `$literal$` → MyBatis `#{param}` / `${literal}`。
 
 ## 参考文件
@@ -123,5 +123,5 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 - [references/frontend-porting.md](references/frontend-porting.md) —— **迁移特有**的前端落点与坑、布局 / 对齐问题的处置顺序。
 - [references/e2e-verification.md](references/e2e-verification.md) —— 前端端到端验证：起服务走查、留证、采集报错；清单 P1–P10 与证据格式。
 - [scripts/grep-gbk.sh](scripts/grep-gbk.sh) / [scripts/setup-paths.sh](scripts/setup-paths.sh) —— GBK 遗留源码中文检索 / 探测并写出本机三仓库路径。
-- 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，已 gitignore）；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`。
+- 项目根 `.agents/paths.env` —— 本机私有路径配置（**唯一配置文件**，已 gitignore；见 [references/repos-and-map.md](references/repos-and-map.md) §路径配置）。
 - **references/fast-path.md** —— 快速路径与准确性红线：哪些提速允许 / 禁止、免文档的适用判据。

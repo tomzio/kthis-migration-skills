@@ -40,7 +40,7 @@
 
 - **何时做**：先把功能与交互跑通（文案直接写中文）；待该批界面稳定后，按「i18n 补齐」阶段统一抽成 `message.json`，不阻塞迁移进度。
 - **文案来源（补齐时）**：中文文案要从遗留 `messages.properties`（GBK）转码后重录，不要复制字节。
-- **补齐时**：**每个菜单页面（页面目录）一份 `message.json`**（主页面 / 弹窗 / 侧滑共用）：`{ componentId, zh_CN: {...}, en_US: {...} }`（**只写 `zh_CN` 即可**）；用 `createMessage` / `getCommonMessage` / `formatMessage`；文案要在**运行时动态取**（render 内 / effect 内），别在组件外部先取成常量，否则切语言不刷新。
+- **补齐时**：**每个菜单页面（页面目录）一份 `message.json`**（主页面 / 弹窗 / 侧滑共用）：`{ componentId, zh_CN: {...}, en_US: {...} }`（**只写 `zh_CN` 即可**，其余语言按需再补）；用 `createMessage` / `getCommonMessage` / `formatMessage`；文案要在**运行时动态取**（render 内 / effect 内），别在组件外部先取成常量，否则切语言不刷新。
 - **不要因 defer 而省**：注册与权限**不依赖文案** —— `componentId` 先落地（**三处一致**见 §1）；补齐 i18n 时再让 `message.json` 的 `componentId` 对齐。
 
 ## 5. 会踩的坑
@@ -59,14 +59,19 @@
 - 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；能靠组件 props 表达的不写 CSS；禁止 `!important`。
 - 「标签 / 文本 / 控件没对齐」类问题按 **§8 处置顺序**判断改哪里，不要上手就写 CSS 或改公用组件。
 
-## 7. 验证（无测试框架）
+## 7. 前端命令与验证（无测试框架）
 
 ```sh
-yarn lint:js                                          # eslint，看【新增】错误/警告
-npx tsc --noEmit -p tsconfig.root.json                # 类型检查；跑完删 tsconfig.root.tsbuildinfo
-yarn build:deps                                       # 仅当改了 packages/*
-yarn dev / yarn start                                 # 起 dev server 手测
+yarn                       # 安装依赖（postinstall 自动 turbo 构建 packages）
+yarn dev                   # 主应用 + packages 同时热更（日常开发用这个），http://localhost:9000
+yarn start                 # 仅主应用热更
+yarn build:deps            # 改 packages/* 后必须执行，否则主应用拿旧产物
+yarn analyze               # 打包体积分析
+yarn lint:js               # eslint，看【新增】错误/警告
+npx tsc --noEmit -p tsconfig.root.json   # 类型检查；跑完删 tsconfig.root.tsbuildinfo
 ```
+
+> 用 `yarn lint:js`（`yarn lint:ts` 是坏的，指向已改名的 `tsconfig.base.json`）；**无测试框架**。路径别名解析到 packages 的编译产物 `es/`，改 `packages/*/src` 必须 `yarn build:deps`（见 §5）。
 
 提交前手测：新增 / 编辑、必填 / 条件必填、显隐 / 禁用 / 联动、校验提示语、保存 / 删除 / 调价流程与遗留一致。dev 代理（`/his`、`/flow`、`/DCWriterDemo`）配在 `scripts/rspack.dev.js`，不在 `.env`。
 
@@ -100,7 +105,8 @@ yarn dev / yarn start                                 # 起 dev server 手测
   }
   ```
 
-  「输入 + 触发按钮」（如按内容生成助记码）同理用 `suffix` 图标，不要另起一行 `Button`。
+  「输入 + 触发按钮」同理用 `suffix` 图标，不要另起一行 `Button`。**拼音码 / 助记码**用输入框 `suffix` 图标（**`id=kticon-font`**）生成；**名称（描述）字段更新时自动触发重算对应拼音码**，无需用户手动点击。
+- **选择类弹窗**：列表上方的查询 / 搜索行（`searchRow`）放到表格 `toolbar` 的**右侧**，如果能放下就不单独占行（见迁移文档 `00-前端布局规范.md` §5）。
 - **左右对照的列表必须等高**：`scroll.y` 只是 **max-height**，数据少时列表会塌陷、左右底部不齐 → 用**固定高度**（如两列表容器固定 360px），空态与有数据都要对齐；固定高度优先用组件现有 props，组件缺这个能力就按「公用组件增强」另立任务。表头不要被裁字：列宽按表头文字给足（`width` / `minWidth`）。
 - **修复后自查**：同一分区内各行行高 / 行距一致（浏览器量各行 y 坐标，确认间隔相等）；左右表 / 上下组件底部对齐，空态与有数据表现一致；`lint` 通过 + 浏览器实测走一遍交互闭环（打开弹窗 → 选择 → 回填）。
 
@@ -125,12 +131,14 @@ yarn dev / yarn start                                 # 起 dev server 手测
 - [ ] 同一表单**不混用** `Field` / `FieldGroup`（见 §9）
 - [ ] 「只读文本 + 点击选择」用只读 `Input` + `suffix` 图标，没有自建布局 div
 - [ ] `Input` 有 `maxLength`；`InputNumber` 有 min / max / precision；金额用 `TextAmount`
+- [ ] 拼音码用输入框 `suffix` 图标（`id=kticon-font`），名称（描述）更新时自动重算
 - [ ] `ComboBox` 的必填 / 非必填空首项、`valueIsObject` 处理正确
 
 **表格与按钮**
 - [ ] `rowKey` 不用 index（必要时 `${id}_${index}`）；`VirtualTable` 的 `vid` 为 `模块_文件名_xxx`
 - [ ] `scroll={{ y }}` 配容器 `height: 100%`（`kt-tableScroll`）
-- [ ] 按钮颜色语义正确（危险操作用 `type="primary" danger` 等）
+- [ ] 按钮颜色语义正确（危险操作用 `type="primary" danger` 等）；常用操作按钮（增 / 删 / 改 / 查）带语义图标
+- [ ] 删除方式与业务相符（操作列单行删除 / 多选批量删除）；选择类弹窗的搜索行并入表格 `toolbar` 右侧
 - [ ] 行单击=单选；表头与单元格默认不折行；日期范围只到天；长文本列 `ellipsis` 悬浮完整
 - [ ] 底部按钮顺序与截图核对一致、末尾「清除(L)」；快捷键标 `(A)` 并绑定 Alt+A；操作类按钮有防抖
 

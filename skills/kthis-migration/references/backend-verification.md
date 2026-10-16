@@ -9,8 +9,7 @@
 mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只校验单模块
 ```
 
-- 其余入口（`build` / `start` / `debug` / `stop`）与单模块构建细节见 [backend-porting.md](backend-porting.md) §13。
-- 需 **JDK 8**；用仓库根 `settings.xml`（内网 Nexus）；端口 **9800**；Swagger `http://<host>:9800/swagger-ui/index.html` 可单独试接口。
+- 其余入口（`build` / `start` / `debug` / `stop`）、单模块构建细节与环境要求（JDK 8、`settings.xml`、端口 9800/Swagger 可单独试接口）见 [backend-porting.md](backend-porting.md) §13。
 
 ## 2. 接口自测（逐个端点）
 

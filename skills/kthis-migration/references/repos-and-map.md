@@ -35,30 +35,11 @@
 
 ### 前端（`WEBHIS_FRONT_DIR`，Node ≥ 18）
 
-```sh
-yarn                 # 安装（postinstall 自动 turbo 构建 packages）
-yarn start           # rspack dev server，仅主应用热更，http://localhost:9000
-yarn dev             # 主应用 + packages 同时热更（日常开发用这个）
-yarn build:deps      # 改 packages/* 后必须执行，否则主应用拿旧产物
-yarn lint:js         # eslint（唯一有效的 lint:js 用法见下）
-yarn analyze         # 打包体积分析
-```
-
-- 验证：`yarn lint:js` + `npx tsc --noEmit -p tsconfig.root.json`（跑完删 `tsconfig.root.tsbuildinfo`）。`yarn lint:ts` 是坏的（指向已改名的 `tsconfig.base.json`）。**无测试框架**。
-- 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**，不是 `src/`。改 `packages/*/src` 必须 `yarn build:deps`。
+安装 / 构建 / 开发 / 验证命令（`yarn`、`yarn dev`、`yarn build:deps`、`yarn lint:js`、`npx tsc …`）与路径别名等注意事项统一见 **[frontend-porting.md](frontend-porting.md) §7**。
 
 ### 后端（`WEBHIS_SERVER_DIR`，JDK 8）
 
-```sh
-./startup.sh              # build：编译打包并启动（jar 模式）
-./startup.sh dev          # 编译 starter-api + 依赖后 spring-boot:run
-./startup.sh stop         # 杀 9800 端口进程
-mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构建某模块
-```
-
-- 必须用仓库根 `settings.xml`（内网 Nexus `maven.karrytech.com`，闭源 `com.karrytech.*` 制品只在上面）。
-- `mvn` 默认 JDK 21 会编译失败，需 `JAVA_HOME` 指向 jdk-1.8。
-- macOS 连内网 Oracle 会被系统 SOCKS 代理干扰；`startup.sh` 会用 `tools/no-socks-proxy-agent.jar`（`-javaagent`）清除，勿删。
+构建、运行、`startup.sh` 子命令与环境要求（仓库根 `settings.xml`/内网 Nexus、JDK 8、macOS no-socks-proxy、端口 9800/Swagger）统一见 **[backend-porting.md](backend-porting.md) §13**。
 
 ## 逐层映射（遗留 → WebHIS）
 
@@ -88,7 +69,7 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 - 审计字段 `created_by` / `created_date_time` / `last_updated_by` / `last_updated_date_time`（部分含 `cancelled_*`）。
 - 多院区 `entity_mstr_id` 必须保留。
 - 主键常为 `BigDecimal` 序列。
-- iBATIS 2.x（`#param#`、`$literal$`、`isNotEmpty`）→ MyBatis 3（`#{param}`、`${literal}`、`if`/`where`）；`$...$` 拼接的表名/排序列必须校验防注入。
+- iBATIS 2.x → MyBatis 3 改写对照见 [backend-porting.md](backend-porting.md) §9；`$...$` 拼接的表名 / 排序列必须白名单校验防注入。
 
 ## 迁移文档索引
 

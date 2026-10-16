@@ -6,10 +6,7 @@
 
 ## 1. 起服务
 
-```sh
-yarn dev            # 主应用 + packages 同时热更（首选），http://localhost:9000
-yarn start          # 仅主应用热更
-```
+起前端 dev server：`yarn dev`（主应用 + packages 同时热更，首选）或 `yarn start`（仅主应用）；完整命令见 [frontend-porting.md](frontend-porting.md) §7。
 
 - 后端用真实的 9800（`./startup.sh dev`），或本地 mock；dev 代理（`/his`、`/flow`、`/DCWriterDemo`）配在 `scripts/rspack.dev.js`，**不在 `.env`**（见 frontend-porting §7）。
 - 记下前端访问地址（默认 `http://localhost:9000`）。
@@ -68,7 +65,7 @@ browser_snapshot                  → 确认已进入主框架
 | P1 | 打开与初始态 | 列表 / 表单能打开；默认值、只读态、按钮可见性正确 |
 | P2 | 新增 | 走完新增保存，字段 / 校验 / 提示语与遗留一致 |
 | P3 | 编辑 | 回填正确；改动落库；**未涉及字段不被覆盖** |
-| P4 | 删除 / 停用 | 二次确认文案一致；列表移除；仍在库（`defunct_ind='Y'`，落库核对见 backend-verification） |
+| P4 | 删除 / 停用 | 删除按危险样式直接执行、无二次确认；列表移除；仍在库（`defunct_ind='Y'`，落库核对见 backend-verification） |
 | P5 | 必填 / 条件必填 | 缺项被拦并给出正确提示 |
 | P6 | 显隐 / 禁用 / 联动 | 勾选、区间、代码 ↔ 名称等联动与遗留一致 |
 | P7 | 校验提示语 | 与设计文档「服务端异常 → 前端提示」一致 |
@@ -100,5 +97,5 @@ browser_snapshot                  → 确认已进入主框架
 - **菜单 / 路由由后端下发**，别凭模块名猜 URL；用可访问性树（Playwright `browser_snapshot`）或直接点菜单进入最稳。
 - **弹窗 / 深链不易直达**：从列表点进去（`browser_click`），再用 snapshot 逐层展开。
 - `browser_take_screenshot` 的 `scale` 必填，用 `"css"`；`browser_console_messages` 要传 `level`；`browser_network_requests` 要传 `static`。
-- 生产构建剥离所有 `console.log`，别指望上线后靠日志排查。- 整页截图的高度会随**列表数据行数**变化，不适合逐像素比对行距 / 对齐 —— 这类核验用 §4.1 的元素级截图。
+- 整页截图的高度会随**列表数据行数**变化，不适合逐像素比对行距 / 对齐 —— 这类核验用 §4.1 的元素级截图。
 - 会话过期会跳登录页；一旦 snapshot 看到登录页，**重新登录**再继续，别把重定向当成功能异常。

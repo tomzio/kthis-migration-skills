@@ -56,10 +56,7 @@
 
 ## 主数据通用约定
 
-- 逻辑删除 `defunct_ind`（'Y'/'N'，查询默认过滤 'N'）。
-- 审计字段 `created_by / created_date_time / last_updated_by / last_updated_date_time`（部分表含 `cancelled_*`）。
-- 多院区 / 机构归属字段必须保留（具体字段名以遗留表结构为准）。
-- 编码：遗留 GBK / 新侧 UTF-8，勿直接复制字节。
+跨模块通用的字段口径（逻辑删除 `defunct_ind`、审计字段、院区 / 机构归属、GBK→UTF-8 编码）以根 [README](../README.md)「迁移通用约定」为准，**本册不复述**；本模块**特有**的字段口径在此补充。
 
 ---
 
