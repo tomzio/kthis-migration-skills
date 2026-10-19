@@ -43,7 +43,7 @@
 约束与惯例：
 
 - **无统一 Result 包装**：controller 直接返回 VO / List / `PageableRespVo<T>`。仓库里**两种风格并存**（多数裸返回，少数 `CommonResult.success(...)`），新增时跟随所在模块的既有风格。
-- 分页：`PageableRespVo<T>` + `findPageableList(dao, "sqlId", params, pageable)`；PageHelper 方言固定 oracle。
+- 分页：见 §8（`PageableRespVo<T>` + `findPageableList(dao, "sqlId", params, pageable)`）。
 - 存储过程调用（如价格调整类）保留 `call(procName, params)` 形式。
 
 ## 4. model 层（active-record）
@@ -82,7 +82,7 @@
 - mapper XML 放 `<mod>-server-impl/src/main/resources/mapper/*Dao.xml`（共享的放 `<mod>-common-server-impl`）；全局扫描配置 `classpath*:mapper/*Dao.xml`。
 - DAO：`@Repository class XDao extends MybatisBaseDao`，在方法里 `this.findList("sqlId", param)` / `findUnique` / `findRowCount` / `call(procName, params)`。
 - **没有开 `map-underscore-to-camel-case`** → 列名 ↔ 属性名必须**显式写 `<resultMap>`**（`resultType` 基本只用于标量，如 `java.lang.Integer` / `BigDecimal`）。Oracle 列名大写，注意别名与映射对齐。
-- 分页：`PageableRespVo<E>`（`current` / `pageSize` / `total` / `results`）+ `findPageableList(dao, sqlId, params, pageable)`。
+- 分页：`PageableRespVo<E>`（`current` / `pageSize` / `total` / `results`）+ `findPageableList(dao, sqlId, params, pageable)`；PageHelper 方言固定 oracle。
 - MyBatis-Plus 在依赖里但**业务不用**（不继承 `BaseMapper` / `ServiceImpl`），SQL 全走 `MybatisBaseDao` + 手写 XML。
 
 ## 9. iBATIS 2.x → MyBatis 3 改写
@@ -132,10 +132,9 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只构�
 ```
 
 - 端口 9800；Swagger `http://<host>:9800/swagger-ui/index.html`（按域分组）。
-- **环境要求**：需 **JDK 8**（`mvn` 默认 JDK 21 会编译失败，`JAVA_HOME` 指向 jdk-1.8）；必须用仓库根 `settings.xml`（内网 Nexus `maven.karrytech.com`，闭源 `com.karrytech.*` 制品只在那里）；macOS 连内网 Oracle 会被系统 SOCKS 代理干扰，`startup.sh` 用 `tools/no-socks-proxy-agent.jar`（`-javaagent`）清除，勿删。
+- **环境要求**：需 **JDK 8**（`mvn` 默认 JDK 21 会编译失败，`JAVA_HOME` 指向 jdk-1.8）；必须用仓库根 `settings.xml`（内网 Nexus `maven.karrytech.com`，闭源 `com.karrytech.*` 制品只在那里）；macOS 的系统 SOCKS 代理会干扰连内网 Oracle，`startup.sh` 用 `-Dhttp.nonProxyHosts` 放行内网。
 - 无真实测试（各 `AppTest` 是桩），一律 `-Dmaven.test.skip=true`；验证见 **[backend-verification.md](backend-verification.md)**。
 
 ## 14. 参考文档
 
-- `<后端>/AGENTS.md`（构建与运行、新增接口四步、白名单/`createSession`、模块归属）—— 最新最权威。
-- `<后端>/docs/<功能>/`（若存在：00 总览 / 01 表结构 / 02 接口 / 03 模型结构 / 04 清理记录）与接口清单类文档，**接口以它为准**。
+后端仓库当前**没有** `AGENTS.md`，也没有 `docs/`：接口与表结构一律以**源码**为准（controller / `resources/mapper/*.xml` / `src/main/resources`），不要去找不存在的概要文档。

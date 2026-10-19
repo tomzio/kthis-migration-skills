@@ -38,6 +38,15 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 
 本机三仓库（遗留 / 前端 / 后端）的绝对路径见**项目根** `.agents/paths.env`（每个开发者不同；缺失时运行 `kthis-migration` 技能的 `scripts/setup-paths.sh`，或直接询问用户）；技能内不写死任何绝对路径。
 
+迁移文档默认**不入库**：前端仓库 `.gitignore` 忽略 `docs/migration`，迁移文档只作本地设计与交付物；提交只包含代码与规则，需要共享文档时另行约定（导出 / 内部文档平台），不要为此改 `.gitignore`。
+
+**安装位置与路径口径**：技能可放在项目 `.agents/skills/`（推荐），也可全局安装，此时它不再位于目标仓库内。无论装在哪，路径口径都按「相对谁」区分：
+
+- `references/` / `templates/` / `scripts/` —— 相对**技能目录**（`SKILL.md` 所在目录）。
+- `docs/migration/`（迁移文档根）、`.agents/rules/`、`.agents/paths.env` —— 相对**目标项目根**，不是技能目录；文档里一律写 `<迁移文档根>/...` 或「项目根下 `docs/migration/...`」，不要写死绝对路径。
+- 脚本从**项目根**运行，或显式传 `--root` / `--docs-dir`（也可设 `KTHIS_PROJECT_ROOT`）；否则向上查找失败时会回退到「技能所在仓库根 + `/docs/migration`」——全局安装时该路径通常不存在，脚本会打印 warning。
+- `.agents/rules/*` 是**目标仓库自身**的规范；技能被用于其它仓库且该仓库没有这套规则时，以该仓库的规范为准。
+
 ## 产物形态
 
 ```text
@@ -50,7 +59,7 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
     └── 00-总览与通用约定.md → 01-主页面.md → 02-<X>编辑弹窗外壳.md → 03..N-<X>页签.md → 独立/辅助弹窗、数据流程与接口、迁移实施计划、共享分区与复用矩阵（按需）
 ```
 
-每册固定：H1 `# <册号> · <册名>` → 导航行 `> 返回索引：[README](../README.md) ｜ 上一册：[..](..) ｜ 下一册：[..](..)` → 范围说明 blockquote → 正文章节。**册集按档位裁剪**（轻量 / 标准 / 完整）：`overview`/`main`/`shell`/`tab` 是核心，`dialog`/`aux`/`data`/`plan`/`matrix` 按需，**没有内容就不建**（`matrix` 仅当确有跨界面共用内容；`aux` 仅当有辅助弹窗 / 码表；简单功能 `00 + 01` 两册即可）。目录 / 册划分 / 命名 / 索引 / 导航 / 截图约定 → **[references/doc-structure.md](references/doc-structure.md)**（档位判定见其 §2.1）。
+**每册骨架**（H1 → 导航行 → 范围说明 → 正文）见 [references/doc-structure.md](references/doc-structure.md) §4。**册集按档位裁剪**（轻量 / 标准 / 完整）：`overview`/`main`/`shell`/`tab` 是核心，`dialog`/`aux`/`data`/`plan`/`matrix` 按需，**没有内容就不建**（`matrix` 仅当确有跨界面共用内容；`aux` 仅当有辅助弹窗 / 码表；简单功能 `00 + 01` 两册即可）。目录 / 册划分 / 命名 / 索引 / 导航 / 截图约定 → **[references/doc-structure.md](references/doc-structure.md)**（档位判定见其 §2.1）。
 
 ## 写文档前先读（UI 相关）
 
@@ -67,7 +76,7 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 | 轮次 | 做什么 | 产出 / 确认点 |
 | --- | --- | --- |
 | R0 · 定界 | 确认模块（新侧代号）、范围、遗留入口、界面单元数量，并**定档位**（轻量 / 标准 / 完整，见 doc-structure §2.1） | 范围、遗留入口与档位（问用户） |
-| R1 · 册规划 | 按档位盘点界面单元 → 排出「册规划表」（**宁少勿多**，没有对应内容的册不建） | **先给册规划表，等用户确认**再动手 |
+| R1 · 册规划 | 按档位盘点界面单元 → 排出「册规划表」（**宁少勿多**，没有对应内容的册不建）；**每个「新增 / 编辑 / 明细维护」表单都要在表里标明落在哪个弹窗 / 侧滑册**（主页面册不得含表单，见 doc-structure §2 第 7 条） | **先给册规划表，等用户确认**再动手 |
 | R2 · 搭骨架 | 用脚本生成骨架，写 `_进度台账.md` | 目录 + 空册 + 台账 |
 | R3+ · 逐册起草 / 修订 | **一次一册**：读遗留源码 → 按模板填 → 交付 → 收批注后修订（必要时用 `new-volume.sh` 插入 / 重排册） | 每册后**请用户批注**；更新台账「修订记录」 |
 | Rn · 横向册 | 数据流程与接口 / 复用矩阵 / 实施计划 | 交叉校对前后册 |
@@ -87,20 +96,21 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 ## 脚本
 
 ```sh
-S=<本技能目录>/scripts          # 即 .agents/skills/kthis-migration-plan/scripts
+S=<本技能目录>/scripts          # 本仓库内即 .agents/skills/kthis-migration-plan/scripts；全局安装时用技能实际路径
 
 # 1) 搭建模块骨架（册序 = --volume 顺序；--no/--name/--code/--volume 由 R1 结论填入）
 $S/scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> [--legacy-ui <遗留入口>] \
   --volume "<主页面>:main" --volume "<弹窗外壳>:shell" --volume "<页签>:tab" …
-#   轻量档（简单功能）加 --lite：只生成 00-总览与通用约定.md + 01-功能说明.md，后续用 new-volume.sh 增册；
+#   轻量档（简单功能）加 --lite：默认生成 00-总览与通用约定.md + 01-功能说明.md；含录入表单时必须再用 --volume 补表单弹窗册（表单默认进弹窗，见 references/doc-structure.md §2 第 7 条），后续可用 new-volume.sh 增册；
 #   首次可加 --global-layout 生成跨模块的 00-前端布局规范.md
+#   该册只在「不存在」时生成，模板更新后不会自动同步 → 用 --refresh-layout 按当前模板刷新它（只动这一册）
 
 # 2) 迭代中插入一册（自动重排册号 + 重写导航与引用）
 $S/new-volume.sh --module-dir <迁移文档根目录>/<NN>-<模块名> --title "<册名>" --type tab --at 3
 
 # 3) 体检（册号连续性 / 导航链 / 索引 / 链接 / 截图命名 / 占位符 / 跨册重复 / 篇幅预算）
 $S/audit-docs.sh                                         # 全量（跨册重复仅提示）；可加 --module <NN>-<模块名>
-$S/audit-docs.sh --strict --dup-strict --max-lines 450    # 收口前严格一遍
+$S/audit-docs.sh --strict --dup-strict    # 收口前严格一遍
 
 # 4) 截图整理（截图丢进 images/ 后：识别 → 按功能改名 → 同步引用）
 $S/rename-screenshots.sh --audit <迁移文档根目录>/images <迁移文档根目录>           # 审计：不合规命名 / 失效引用 / 未引用
@@ -126,4 +136,4 @@ $S/rename-screenshots.sh <迁移文档根目录>/images <迁移文档根目录> 
 - [references/quality-gates.md](references/quality-gates.md) —— 验收门禁清单（自动 + 人工）
 - [references/screenshots.md](references/screenshots.md) —— 截图识别、按功能命名与引用更新（命名规范在此）；批量改名脚本 [scripts/rename-screenshots.sh](scripts/rename-screenshots.sh)（`--audit` 审计命名 / 失效引用 / 未引用）
 
-> **跨工具（OpenCode / Claude Code / Trae IDE）**：本技能是**项目级技能**，唯一原始目录 `.agents/skills/kthis-migration-plan/`，其它工具目录均为指向它的软链接（勿另存副本）；接入方式与 Windows 软链接注意事项见仓库 `.agents/README.md`。
+> **跨工具（OpenCode / Claude Code / Trae IDE）**：在本仓库内使用时，本技能的唯一原始目录是 `.agents/skills/kthis-migration-plan/`，其它工具目录均为指向它的软链接（勿另存副本），接入方式与 Windows 软链接注意事项见仓库 `.agents/README.md`；全局安装（如 `~/.config/opencode/skills/`）时无软链要求，路径口径见上节「安装位置与路径口径」。

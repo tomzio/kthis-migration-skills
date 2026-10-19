@@ -7,7 +7,7 @@
 # 用法：
 #   scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> \
 #     [--legacy-ui <遗留入口>] \
-#     [--root docs/migration] [--force] [--lite] \
+#     [--root docs/migration] [--force] [--lite] [--refresh-layout] \
 #     --volume "<主页面>:main" --volume "<弹窗外壳>:shell" --volume "<页签>:tab" ...
 #
 # 册类型（template 名）：
@@ -19,7 +19,7 @@
 #         册集按档位裁剪（轻量 / 标准 / 完整）见 references/doc-structure.md §2.1。
 #
 # 另：--global-layout 可生成跨模块的 docs/migration/00-前端布局规范.md（仅第一次需要）。
-# 另：会自动创建 <迁移文档根>/images/ 空目录（共享截图目录，命名与引用见 references/screenshots.md）。
+# 该册只在不存在时才生成，模板更新后不会自动同步 —— 用 --refresh-layout 单独刷新它（不影响任何分册）。
 #
 # --root 默认目录探测顺序：--root > $KTHIS_PROJECT_ROOT（含 docs 或 .agents）>
 #   当前目录逐级向上（含 .agents/ 或 docs/migration/）> 技能所在仓库根（../../..）。
@@ -31,11 +31,11 @@ set -u
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 
 MOD_NO=""; MOD_NAME=""; MOD_CODE=""; LEGACY_UI="（待补）"
-MIG_DIR=""; FORCE=0; GLOBAL_LAYOUT=0; LITE=0
+MIG_DIR=""; FORCE=0; GLOBAL_LAYOUT=0; REFRESH_LAYOUT=0; LITE=0
 declare -a VOLS=()
 
 usage() {
-  sed -n '2,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -45,11 +45,12 @@ while [ $# -gt 0 ]; do
     --name)          MOD_NAME="${2:-}"; shift 2 ;;
     --code)          MOD_CODE="${2:-}"; shift 2 ;;
     --legacy-ui)     LEGACY_UI="${2:-}"; shift 2 ;;
-    --root)          MIG_DIR="${2:-}"; shift 2 ;;
+    --root|--docs-dir) MIG_DIR="${2:-}"; shift 2 ;;
     --volume)        VOLS+=("${2:-}"); shift 2 ;;
     --force)         FORCE=1; shift ;;
     --lite)          LITE=1; shift ;;
     --global-layout) GLOBAL_LAYOUT=1; shift ;;
+    --refresh-layout) REFRESH_LAYOUT=1; shift ;;
     -h|--help)       usage ;;
     *) echo "未知参数：$1" >&2; usage ;;
   esac
@@ -79,17 +80,19 @@ MODULE_DIR="${MIG_DIR}/${MOD_NO}-${MOD_NAME}"
 if [ "${#VOLS[@]}" = 0 ] && [ "${LITE}" = 1 ]; then
   VOLS=("功能说明:main")
 fi
+if [ "${#VOLS[@]}" = 0 ]; then
+  echo "错误：至少需要一个 --volume（或用 --lite 生成轻量档）。" >&2; exit 1
+fi
 # 确保有 overview 且在最前
 HAS_OVERVIEW=0
-for v in "${VOLS[@]:-}"; do
+for v in "${VOLS[@]}"; do
   [ "${v##*:}" = "overview" ] && HAS_OVERVIEW=1
 done
 if [ "${HAS_OVERVIEW}" = 0 ]; then
-  VOLS=("总览与通用约定:overview" "${VOLS[@]:-}")
+  VOLS=("总览与通用约定:overview" "${VOLS[@]}")
 fi
 
 TOTAL=${#VOLS[@]}
-if [ "${TOTAL}" = 0 ]; then echo "错误：至少需要一个 --volume。" >&2; exit 1; fi
 
 VALID_TYPES="overview main shell tab dialog aux data plan matrix"
 declare -a V_NO=() V_TITLE=() V_TYPE=() V_FILE=()
@@ -181,14 +184,18 @@ else
 fi
 
 # ---- 跨模块布局规范 ----
-if [ "${GLOBAL_LAYOUT}" = 1 ]; then
-  GL="${MIG_DIR}/00-前端布局规范.md"
+GL="${MIG_DIR}/00-前端布局规范.md"
+if [ "${REFRESH_LAYOUT}" = 1 ]; then
+  cp "${TEMPLATES}/00-前端布局规范.md.tpl" "${GL}"
+  subst "${GL}" '{{DATE}}' "${DATE}"
+  echo "  刷新：00-前端布局规范.md（按当前模板覆盖）"
+elif [ "${GLOBAL_LAYOUT}" = 1 ]; then
   if [ ! -f "${GL}" ] || [ "${FORCE}" = 1 ]; then
     cp "${TEMPLATES}/00-前端布局规范.md.tpl" "${GL}"
     subst "${GL}" '{{DATE}}' "${DATE}"
     echo "  生成：00-前端布局规范.md"
   else
-    echo "  跳过（已存在）：00-前端布局规范.md"
+    echo "  跳过（已存在）：00-前端布局规范.md（模板有更新时加 --refresh-layout）"
   fi
 fi
 

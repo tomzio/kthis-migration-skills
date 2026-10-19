@@ -36,7 +36,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 迁移横跨遗留 KTHIS/eHealth（业务真源）、webhis-front（新前端）、webhis-server（新后端）。⚠️ **仓库路径因开发者机器而异，不要假设固定的绝对路径**：统一从**项目根** `.agents/paths.env` 读三个 `*_DIR` 变量；缺失 / 失效时跑 `scripts/setup-paths.sh`（自动探测并写出），或直接问用户 —— 变量名、脚本参数与模板细节见 [references/repos-and-map.md](references/repos-and-map.md) §路径配置。执行自带脚本用「skill 根目录 + 相对路径」。
 
-- 每个仓库的 `AGENTS.md` 是**最新、最权威的本地约定**，动手前先读对应仓库的那一份；本 skill 只做迁移流程的组织与速查。
+- 新前端仓库根的 `AGENTS.md` 是**最权威、最新的本地约定**，动手前先读（遗留 / 后端仓库当前**没有** `AGENTS.md`，以源码为准）；本 skill 只做迁移流程的组织与速查。
 - 逐层映射、各仓库命令、模块改名速查、主数据通用约定、迁移文档索引、已落地样例 → 读 **[references/repos-and-map.md](references/repos-and-map.md)**。
 
 ## 工作流（六阶段）
@@ -49,7 +49,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 
 链路：**SWT 视图 → 事件 → `action` 契约 / `I*Service` → server impl → iBATIS map（SQL）→ 数据库表**。
 
-- 记录：字段清单与类型、码表与默认值、显隐/禁用/联动规则、校验与提示语、保存/更新/删除/调价的调用顺序与事务边界、系统参数。
+- 记录：字段清单与类型、码表与默认值、显隐/禁用/联动规则、校验与提示语、保存/更新/删除/调价的调用顺序与事务边界、系统参数（编码 / 名称 / 默认值 / 用途 / 取值点；无则写「（无）」）。
 - 对照 `docs/migration/` 对应分册，**但以源码复核**（截图只核对标签与控件顺序，不保证完整）；读遗留源码用 GBK 转码，按中文 / 标识符检索用 `scripts/grep-gbk.sh`。
 - 产出「证据笔记」：每条结论都标出来源文件（+ 关键行/方法）。
 
@@ -75,6 +75,7 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 ### 阶段 4 · 前端实现
 
 - 懒加载 + 注册：`@loadable/component` + `dynamicModule`，在 `<mod>ComponentRegistry.js` 注册。
+- **表单不进页面主体（先钉死形态）**：新增 / 编辑 / 明细维护表单**必须**走弹窗或侧滑（`uiSetting.popupType: 'dialog' | 'slip'` + `app/openComponentPopup`），页面主体只留「查询条件 + 工具条 + 表格」——遗留「上半屏录入表单 + 下半屏列表」的 `*FormPage` **不得照搬**。规则见 `.agents/rules/page-norm.md`「1. 主页面」，判定见 [references/frontend-porting.md](references/frontend-porting.md) §10.2。
 - model 继承基类（`@webhis/shared/app/model/*`）：页面 `extendPage`（需未保存校验用 `extendEditablePage`）、弹窗 `extendPopup` / `extendEditablePopup`、带患者条 `extendWpbPage`。
 - 请求走 `@webhis/shared/utils/request` 的 `get/post/postWithParameter`（**最后参数必须传 `this`**）；弹窗统一 `app/openComponentPopup` + `componentId` 打开（`putPromise` 拿返回值），**禁止直接 import baseUi 的 Dialog**。
 - 权限：`componentAction.ts` 声明 actions（`require.context` 自动收集），model `init` 里 `mergeComponentAction` 合并；注册与权限不依赖文案，**先落地**。
@@ -83,36 +84,34 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 **动手写界面前，按这个顺序读完再动手**（第一次生成最常见的返工原因就是没读全这几份）：
 
 1. **迁移文档的布局规范**（本模块目录里的 `00-前端布局规范.md`，或迁移文档根的同名册）—— 界面长什么样、怎么排的**具体数值**全在这里（骨架、栅格每行几对、`templateColumns`、分区顺序、组件对照、表格与按钮约定、尺寸）。它是**当前界面的实现依据**，不是参考。
-2. **仓库 `.agents/rules/`**：`page-norm.md`（模型 / 注册 / effect / 弹窗打开）、`pageStyleRule.md`（样式与对齐）、`componentUseRule.md`（表单控件）、`tableRule.md`（表格）。
+2. **仓库 `.agents/rules/`**：`FrontNormalize.md`（总入口 / 硬约束）、`page-norm.md`（模型 / 注册 / effect / 弹窗打开）、`pageStyleRule.md`（样式与对齐；**新增 class 前必读「6. 复用优先与最小化自定义样式（强制）」**）、`componentUseRule.md`（表单控件）、`tableRule.md`（表格）。
 3. **本技能 [references/frontend-porting.md](references/frontend-porting.md)** —— 迁移特有的落点与坑；末尾 **§8 处置顺序**、**§9 表单与对齐（迁移特有坑）**、**§10 落地前自查清单**。
 
-写完一个界面**立刻**按 §10 逐条自查，并做元素级截图与遗留截图并排比对（见 frontend-porting §7 与 e2e-verification §4.1）—— 不要等整个功能做完再统一查。
+写完一个界面**立刻**跑 [references/frontend-porting.md](references/frontend-porting.md) §10.1 的 `check-frontend.sh`（ERROR 清零）并按 §10.2 逐条自查，并做元素级截图与遗留截图并排比对（见 frontend-porting §7 与 e2e-verification §4.1）—— 不要等整个功能做完再统一查。
+
+> **场景化细则**（在 `.agents/skills/webhis-front/references/`，命中场景时再读）：**报表打印**（RAN / `printJob` / 预览）读 `report-print.md`；**三方 / 小程序 / 医保接口**读 `third-party-api.md`（侧边工具栏 `side-toolbar.md`、病区患者树 `ward-patient-tree.md` 同目录按需读）。
 
 ### 阶段 5 · 验证门禁与提交
 
-- **G1 静态检查**：改动文件 `yarn lint:js` 无新增错误/警告；`npx tsc --noEmit -p tsconfig.root.json` 通过（跑完删仓库根未跟踪的 `tsconfig.root.tsbuildinfo`）。
+- **G1 静态检查**：改动文件 `yarn lint:js` 无新增错误/警告；`npx tsc --noEmit -p tsconfig.root.json` 通过（跑完删仓库根未跟踪的 `tsconfig.root.tsbuildinfo`）；**迁移前端体检**：`bash .agents/skills/kthis-migration/scripts/check-frontend.sh src/pages/<mod>/<页面目录>` **ERROR 必须为 0**（含「页面主体不得内嵌弹窗 / 表单」等机检项，清单见 [references/frontend-porting.md](references/frontend-porting.md) §10.1），命令与结果按 §10.3 贴进 `_进度台账.md`。**没跑体检、没留痕，视为本阶段未完成。**
 - **G2 构建**：改了 `packages/*` 才需 `yarn build:deps`（否则主应用拿旧产物）。
 - **G3 端到端手测**：起 dev server（前端 `yarn dev`；后端 `./startup.sh dev` 起 9800，或用本地 mock），按遗留 / 设计文档逐条实测，表现一致。留证可手动浏览器走查 + 人工截图；本地若已装 **Playwright MCP**（可选）可用 `browser_*` 工具驱动。清单（P1–P10）与证据格式见 **[references/e2e-verification.md](references/e2e-verification.md)**。
 - **G4 无回归**：重跑前序关键路径手测；**G5 评审确认**：用户确认后再推进 / 提交。
 
-后端改动用 `mvn -pl webhis-<mod>-server-impl -am install`（或 `./startup.sh dev`）；后端验证不止编译——**接口逐个自测 + 落库核对 + 与遗留行为比对**，清单见 **[references/backend-verification.md](references/backend-verification.md)**。提交用 Conventional Commits（中文描述），经 GitLab MR 合入。**不要声称「测试通过」**（前后端都没有可用的测试框架）。
+后端改动先构建单模块 `mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true`，再启动 `./startup.sh dev`（起 9800）；后端验证不止编译——**接口逐个自测 + 落库核对 + 与遗留行为比对**，清单见 **[references/backend-verification.md](references/backend-verification.md)**。提交用 Conventional Commits（中文描述），经 GitLab MR 合入。**不要声称「测试通过」**（前后端都没有可用的测试框架）。
 
 ## 硬约定速查（最易踩的坑）
 
-**前端**（细节见 [references/frontend-porting.md](references/frontend-porting.md)）
+**前端**（细则唯一来源：仓库 `.agents/rules/*`；迁移特有的落点与坑见 [references/frontend-porting.md](references/frontend-porting.md)）
 
-- effect 的 `context` 挂在**第一个参数（action）上**：必须写 `*effect({ payload, context: { namespace } }, { put, select, callService })`；写成第二个参数会运行时抛错，且 lint / tsc 都发现不了（症状：点了没反应）。
-- service 方法最后一个参数必须传 `this`；**禁止用 `updateState` 改二级数据结构**，复杂 state 变更写专门 reducer。
-- 别把刷新逻辑塞进 `init`：切回页签的刷新由基类调度到 `refresh` effect。
-- 表格 key 用 `${id}_${index}`，不要用 index；`VirtualTable` 的 `vid` 命名 `模块_文件名_xxx`。
-- ESLint 禁导：`moment`（用 dayjs）、`lodash` / `lodash/*`（用 `lodash-es`）、`@brickio/ui`（用 `@/base/ui`）；生产构建会剥离所有 `console.log`。
+- **不复述细则，按落点查**：effect 的 `context` 传参、`service` 传 `this`、`updateState`、切回页签走 `refresh` → `.agents/rules/page-norm.md`「通用约束（重要）」「1. 主页面」；表格 key 与 `VirtualTable` 的 `vid` 命名 → `.agents/rules/tableRule.md`「虚拟表格 / 排序表格」；ESLint 禁导（`moment` / `lodash` / `@brickio/ui`）与生产构建剥离 `console.log` → `.agents/rules/FrontNormalize.md`「必读要点（摘要）」。
+- **表单形态（先钉死）**：新增 / 编辑 / 明细维护表单**只在弹窗 / 侧滑**里打开，页面主体只有「查询条件 + 工具条 + 表格」→ `.agents/rules/page-norm.md`「1. 主页面」；若迁移设计文档的主页面册里写了录入表单，那是**册划分**错了（`kthis-migration-plan/references/doc-structure.md` §2 第 7 条），先改文档再实现。
 
 **后端 / 数据**（细节见 [references/backend-porting.md](references/backend-porting.md)）
 
 - 响应形态不统一：**多数** controller 返回裸对象/数组（无 `{code,data}`、无分页 total），**少数**包 `CommonResult.success(...)`；写前端请求层前先看具体 controller。无全局 `@ControllerAdvice`，业务直接 `throw new BizException(...)`。
 - 包名多为 `com.karrytech.webhis.<mod>`，个别模块例外（先读代码）；**模块名 ≠ 业务归属**（硬约束 3）。
-- 构建 / 运行环境（JDK 8、仓库根 `settings.xml`/内网 Nexus、端口 9800 等）见 [backend-porting.md](references/backend-porting.md) §13。
-- iBATIS `#param#` / `$literal$` → MyBatis `#{param}` / `${literal}`。
+- iBATIS `#param#` / `$literal$` → MyBatis `#{param}` / `${literal}`；构建 / 运行环境（JDK 8、`settings.xml`、端口 9800 等）见 [backend-porting.md](references/backend-porting.md) §13。
 
 ## 参考文件
 

@@ -119,10 +119,10 @@ if [ "${DRY}" = 0 ]; then
     if [ -n "${newf}" ] && [ "${newf}" != "${OLD_FILES[$k]}" ]; then
       oldesc="$(printf '%s' "${OLD_FILES[$k]}" | sed -e 's/[\\&|]/\\&/g')"
       newesc="$(printf '%s' "${newf}" | sed -e 's/[\\&|]/\\&/g')"
-      grep -rlF --include='*.md' -- "${OLD_FILES[$k]}" "${MOD_DIR}" 2>/dev/null | while IFS= read -r f; do
+      grep -rlF -- "${OLD_FILES[$k]}" "${MOD_DIR}" --include='*.md' 2>/dev/null | while IFS= read -r f; do
         sed_inplace "s|${oldesc}|${newesc}|g" "${f}"
       done
-      grep -rlF --include='*.md' -- "${MOD_BASE}/${OLD_FILES[$k]}" "${MIG_DIR}" 2>/dev/null | while IFS= read -r f; do
+      grep -rlF -- "${MOD_BASE}/${OLD_FILES[$k]}" "${MIG_DIR}" --include='*.md' 2>/dev/null | while IFS= read -r f; do
         sed_inplace "s|${MOD_BASE}/${oldesc}|${MOD_BASE}/${newesc}|g" "${f}"
       done
     fi
@@ -180,12 +180,7 @@ while [ "${k}" -lt "${NEW_TOTAL}" ]; do
   if [ "${k}" -lt $((NEW_TOTAL-1)) ]; then nav="${nav} ｜ 下一册：[$(printf '%02d' $((k+1)))-${NEW_TITLES[$((k+1))]}](./$(printf '%02d' $((k+1)))-${NEW_TITLES[$((k+1))]}.md)"; else nav="${nav} ｜ 下一册：—"; fi
   if [ "${DRY}" = 1 ]; then echo "  导航 ${f}"; else
     # 用 python 之外的稳妥做法：先删旧导航行，再在 H1 后插入
-    tmp="$(mktemp)"; awk -v nav="${nav}" '
-      NR==1 { print; next }
-      /^> .*返回索引/ || /^> \{\{NAV\}\}/ { print "> " nav; got=1; next }
-      { print }
-      END { if (!got) { print ""; print "> " nav } }
-    ' "${MOD_DIR}/${f}" > "${tmp}" && mv "${tmp}" "${MOD_DIR}/${f}"
+    tmp="$(mktemp)"; awk -v nav="${nav}" 'NR==1{print; print ""; print "> " nav; next} /^> .*返回索引/{next} {print}' "${MOD_DIR}/${f}" > "${tmp}" && mv "${tmp}" "${MOD_DIR}/${f}"
   fi
   k=$((k+1))
 done

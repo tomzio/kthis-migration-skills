@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# audit-docs.sh —— 体检 docs/migration 迁移文档：册号连续性、导航链、链接、截图、占位符、篇幅预算、跨册重复。
+# audit-docs.sh —— 体检 docs/migration 迁移文档：册号连续性、导航链、链接、截图、占位符、系统参数总表、篇幅预算、跨册重复。
 #
 # 用法：
 #   audit-docs.sh [--docs-dir <docs/migration 目录>] [--module <02-模块目录名>] [--strict] [--max-lines <N>] [--dup-strict]
@@ -122,7 +122,24 @@ audit_module() {
   local todos; todos="$(grep -rho '<!-- TODO' "${dir}" 2>/dev/null | wc -l | tr -d ' ')"
   [ "${todos}" -gt 0 ] && echo "  [信息] 未完成 TODO 标记 ${todos} 处"
 
-  # 6) 单册篇幅预算（一册讲透一件事，过长考虑拆分/精简）
+  # 6) 系统参数总表（模块 00 必须保留；未使用参数写「（无）」）
+  local sysf="" sys_body="" sys_rows=""
+  while IFS= read -r f; do
+    case "${f}" in 00-*.md) sysf="${dir}/${f}"; break ;; esac
+  done <<< "${files}"
+  if [ -z "${sysf}" ]; then
+    err "缺少 00-总览与通用约定.md，无法登记系统参数总表"
+  elif ! grep -qE '^##[[:space:]]+系统参数总表[[:space:]]*$' "${sysf}"; then
+    err "$(basename "${sysf}"): 缺少「系统参数总表」章节"
+  else
+    sys_body="$(awk '/^##[[:space:]]+系统参数总表/{in_sys=1; next} in_sys && /^##[[:space:]]/{exit} in_sys' "${sysf}")"
+    sys_rows="$(printf '%s\n' "${sys_body}" | grep -vE '^\|[[:space:]]*(参数编码|---)' || true)"
+    if ! printf '%s\n' "${sys_rows}" | grep -qE '（无）|^\|[[:space:]]*[^|[:space:]]'; then
+      warn "$(basename "${sysf}"): 系统参数总表为空（未使用参数请写「（无）」）"
+    fi
+  fi
+
+  # 7) 单册篇幅预算（一册讲透一件事，过长考虑拆分/精简）
   while IFS= read -r f; do
     [ -z "${f}" ] && continue
     local p="${dir}/${f}" ln
@@ -205,7 +222,7 @@ audit_images() {
   echo "  [信息] 截图 ${total} 张，命名不合规 ${bad} 张"
 
   local ref rel found
-  for ref in $(grep -rhoE --include='*.md' -- 'images/[A-Za-z0-9._-]+\.(png|jpg|jpeg)' "${DOCS_DIR}" 2>/dev/null | sort -u); do
+  for ref in $(grep -rhoE 'images/[A-Za-z0-9._-]+\.(png|jpg|jpeg)' "${DOCS_DIR}" --include='*.md' 2>/dev/null | sort -u); do
     rel="${ref#images/}"
     found=0
     for imgdir in "${dirs[@]}"; do

@@ -71,13 +71,11 @@
 
 ### Rn · 收口
 
-跑 `audit-docs.sh --strict`；清零错误与占位符；台账置为完成。
+跑 `audit-docs.sh --strict --dup-strict`；清零错误与占位符；台账置为完成。
 
 ## 2. 进度台账格式（`_进度台账.md`）
 
-结构以模板 `templates/_进度台账.md.tpl` 为准。
-
-**每轮结束必须更新**：进度表状态、修订记录一行、新增/关闭的待确认项。
+结构与每轮更新要求见 [doc-structure.md](doc-structure.md) §7（模板 `templates/_进度台账.md.tpl`）。
 
 ## 3. 何时用 `new-volume.sh`
 

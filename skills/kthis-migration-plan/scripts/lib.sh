@@ -29,6 +29,7 @@ detect_mig_dir() {
     [ "${d}" = "/" ] && break
     d="$(dirname "${d}")"
   done
+  printf 'warning: 未找到迁移文档根（docs/migration），已回退到 %s；全局安装技能时请从项目根运行，或设置 KTHIS_PROJECT_ROOT / --docs-dir。\n' "${REPO_ROOT}/docs/migration" >&2
   printf '%s/docs/migration' "${REPO_ROOT}"
 }
 

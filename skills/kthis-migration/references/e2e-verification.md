@@ -39,7 +39,8 @@ browser_snapshot                  → 确认已进入主框架
 | 接口 4xx/5xx | `browser_network_requests`（按 URL 过滤接口）→ `browser_network_request` 看详情 | 纳入证据说明 |
 
 - **无 Playwright 时**：浏览器手动截图存到 `<前端>/.e2e/shots/`，控制台报错与接口 4xx/5xx 用 DevTools 的 Console / Network 面板查看。
-- 截图命名建议 `<模块>-<界面>-<态>.png`（`-page` / `-tab` / `-dialog`，新增态加 `add-`；与遗留截图命名口径一致，便于并排比对）。
+- `<前端>/.e2e/` 是**本地证据目录，不要提交**（若 `.gitignore` 未覆盖，自行补一条）。
+- 截图命名建议 `<模块>-<界面>-<态>.png`（`-page` / `-tab` / `-dialog`，新增态加 `add-`），便于并排比对；注意它**不同于**遗留截图 `<功能序号>-<模块代号>-<界面英文名>.png` 的口径。
 - **新侧截图与遗留截图分开放**：`docs/migration/images/` 只放遗留 SWT 截图（属文档阶段资产，见 `kthis-migration-plan` 技能的 `references/screenshots.md`）。
 
 ### 4.1 局部（元素级）截图
@@ -65,11 +66,11 @@ browser_snapshot                  → 确认已进入主框架
 | P1 | 打开与初始态 | 列表 / 表单能打开；默认值、只读态、按钮可见性正确 |
 | P2 | 新增 | 走完新增保存，字段 / 校验 / 提示语与遗留一致 |
 | P3 | 编辑 | 回填正确；改动落库；**未涉及字段不被覆盖** |
-| P4 | 删除 / 停用 | 删除按危险样式直接执行、无二次确认；列表移除；仍在库（`defunct_ind='Y'`，落库核对见 backend-verification） |
+| P4 | 删除 / 恢复 / 停用 / 作废 / 终止 / 取消 / 撤回 | 危险动作按危险样式执行，并经 `dialog.confirm` 二次确认（见 `.agents/rules/componentUseRule.md`「危险操作二次确认」）；取消确认时不得调用接口；删除后列表移除、仍在库（`defunct_ind='Y'`，落库核对见 backend-verification） |
 | P5 | 必填 / 条件必填 | 缺项被拦并给出正确提示 |
 | P6 | 显隐 / 禁用 / 联动 | 勾选、区间、代码 ↔ 名称等联动与遗留一致 |
 | P7 | 校验提示语 | 与设计文档「服务端异常 → 前端提示」一致 |
-| P8 | 分页 / 排序 / 筛选 | 首页 / 末页 / 越界 / 排序稳定 |
+| P8 | 分页 / 排序 / 筛选 | 首页 / 末页 / 越界 / 排序稳定；过滤删除默认开启，关闭后才显示已删除行 |
 | P9 | 业务主流程 | 保存 / 删除 / 调价等关键链路整体走通 |
 | P10 | 控制台 / 接口 | 无新增 error；关键接口无 4xx/5xx（或已解释） |
 
@@ -94,7 +95,7 @@ browser_snapshot                  → 确认已进入主框架
 
 ## 8. 坑
 
-- **菜单 / 路由由后端下发**，别凭模块名猜 URL；用可访问性树（Playwright `browser_snapshot`）或直接点菜单进入最稳。
+- **菜单 / 路由由后端下发**（见 §3），别凭模块名猜 URL。
 - **弹窗 / 深链不易直达**：从列表点进去（`browser_click`），再用 snapshot 逐层展开。
 - `browser_take_screenshot` 的 `scale` 必填，用 `"css"`；`browser_console_messages` 要传 `level`；`browser_network_requests` 要传 `static`。
 - 整页截图的高度会随**列表数据行数**变化，不适合逐像素比对行距 / 对齐 —— 这类核验用 §4.1 的元素级截图。
