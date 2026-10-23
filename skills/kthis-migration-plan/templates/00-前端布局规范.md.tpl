@@ -50,11 +50,7 @@
 
 ## 3. 骨架、栅格与实现
 
-> **表单默认形态（重要）**：迁移页面的**表单一律不放在页面主体里** —— 新增 / 编辑 / 明细维护等表单**一律通过弹窗或侧滑抽屉打开**（无例外；规则见 `.agents/rules/page-norm.md`「1. 主页面」）：
-
-> - 字段少、操作轻 → **侧滑抽屉**（`uiSetting.popupType: 'slip'`）
-> - 多页签、大表单（字段多 / 分区多）→ **弹窗**（`popupType: 'dialog'`，见 §3.2、§7）
-> - 打开方式见 `.agents/rules/page-norm.md`「2. 对话框」；列表页 / 主页面只负责「查询条件 + 结果列表 + 操作列」，不内嵌表单。
+> **表单形态：先判定页面类型（重要）**。维护 / 设置类列表页的添加 / 编辑 / 明细维护表单通过弹窗或侧滑打开，页面主体只留「查询条件 + 工具条 + 表格」；字段少 → 侧滑（`uiSetting.popupType: 'slip'`），多页签 / 大表单 → 弹窗（`popupType: 'dialog'`，见 §3.2、§7）。表单页、文档编辑器、向导页、详情页、查询 / 报表页按各自形态组织，表单可留在页面主体，不强制套用弹窗；**无法判定页面类型时先让用户在「维护 / 设置类列表页」与「默认页面形态」之间选择，不要自行假设**。规则见 `.agents/rules/page-norm.md`「1. 主页面」。
 
 ### 3.1 页面级骨架（列表页）
 
@@ -65,7 +61,7 @@
 │ <页内标题>                                                  ← 页内标题  │
 ├──────────────────────────────────────────────────────────────────────┤
 │ (机构▼) [🔍]选择  ⦿全部 ○有效 ○无效 ○锁定 ○未锁定                              │ ← 过滤行
-│ 分类路径: 一级 -> 二级 -> 三级                        当前记录数: N     │
+│ 分类路径: 一级 -> 二级 -> 三级                                            │
 │ [新建][编辑][停用]…            │            [刷新][导出]…              │ ← 操作行(左组/右组)
 ├──────────────────────────────────────────────────────────────────────┤
 │ ┌──────────────┐ ┌─ 可拖拽分隔（默认 280px，范围 200–520px）────────────┐ │
@@ -84,14 +80,13 @@
 - 主体左右分栏：**左分类树 + 右结果表格**，分栏可拖拽并支持收起 / 展开。
 - 表格区域是唯一滚动源，`flex:1; min-width:0` 防止挤压。
 - 组件结构：页面根 `div`（BEM 作用域）→ 过滤行 → 操作行（两组 `Button`）→ `Row`（左 `Col` 固定 280px 放树，右 `Col` `flex:1` 放表格）；控件到组件、表格选型见 §4。
-- **维护类页面**（列表 + 表单）仍走上图的列表页骨架：**页面主体只有「查询条件 + 工具条 + 表格（含操作列）」，不内嵌任何表单**——新增 / 编辑 / 明细维护一律走弹窗或侧滑。
-- **主 / 明细多分区上下排布**的骨架**只出现在弹窗 / 侧滑内部**（含其页签），见 §3.1.1。
+- **维护 / 设置类列表页**走上图的列表页骨架；维护表单不在本骨架内，见 §3 开头与 §3.1.1。表单页 / 编辑器 / 向导 / 详情 / 查询报表页按各自页面骨架，不套用此骨架。
 
 #### 3.1.1 弹窗 / 侧滑内的主 + 明细分区骨架（维护类）
 
-> **适用范围（硬约束）**：本骨架**只能出现在弹窗 / 侧滑（含其页签）内部**；**出现在页面主体即违规**——迁移页面的表单一律不放在页面主体里（见 §3 开头「表单默认形态」）。
+> **适用范围**：本骨架用于**维护 / 设置类列表页**的弹窗 / 侧滑（含其页签）内部；不要用在维护 / 设置类页面主体。表单页 / 文档编辑器 / 向导页 / 详情页 / 查询 / 报表页按各自页面骨架，不受此限（见 §3 开头「维护 / 设置类列表页的表单形态」）。
 >
-> 主 / 明细等多个分区**上下排布**、各自撑满（`flex:1`）、弹窗内一屏，靠间距 / 分隔线区分；**不显示分区标题**（表单、表格不渲染 `sectionTitle`）；每区**工具条**分左右两区：**左** = 与标题分隔的竖线 + 表级过滤开关（默认开启，默认隐藏 `defunct_ind='Y'` 的已删除行）；**右** = 聚合搜索框（`Input.Search`，一个框同时搜**编码 / 描述 / 拼音码**）+「查询 / 添加」等按钮（右对齐、间距 8px）。分区 / 工具条口径见 `.agents/rules/page-norm.md`「1. 主页面」；明细维护「上部编辑区 + 下部列表」口径见 `.agents/rules/page-norm.md`「2. 对话框」。
+> 主 / 明细等多个分区**上下排布**、各自撑满（`flex:1`）、弹窗内一屏，靠间距 / 分隔线区分；**不显示分区标题**（表单、表格不渲染 `sectionTitle`）；每区**工具条**分左右两区：**左** = 与标题分隔的竖线 + 表级过滤开关（默认开启，默认隐藏 `defunct_ind='Y'` 的已删除行）；**右** = 聚合搜索框（`Input.Search`，一个框同时搜**编码 / 描述 / 拼音码**，按语义识别）+「查询 / 添加」等按钮（右对齐、间距 8px）。分区 / 工具条口径见 `.agents/rules/page-norm.md`「1. 主页面」；明细维护「上部编辑区 + 下部列表」口径见 `.agents/rules/page-norm.md`「2. 对话框」。
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -140,7 +135,7 @@
 | ---------------------- | ---------------- | ------------------ |
 | 主弹窗主页签的主体分区 | 展开             | 编辑最常用         |
 | 主弹窗主页签的次要分区 | 展开或按分册规定 | 见各模块分册       |
-| **新增态**的次级分区   | 折叠             | 减少首屏噪音       |
+| **添加态**的次级分区   | 折叠             | 减少首屏噪音       |
 | 页签内列表型分区       | 展开             | 与编辑表单上下排列 |
 
 - 分区组件用法（`Collapse ghost expandIconPosition="end"`、点标题整行折叠、禁用用 `disabled` 而非 `visible`、内边距 10px 与标题样式）与判定方式见 `.agents/rules/page-norm.md`「2. 对话框」；上表只规定各分区在本界面下的**默认展开 / 折叠态**。
@@ -210,13 +205,12 @@
 | 打开弹窗 / 侧滑、弹窗选择器（`app/openComponentPopup` + `componentId`） | `.agents/rules/page-norm.md`「2. 对话框」 |
 | 字段控件（`ComboBox` / `InputNumber` / `TextAmount` / `DatePicker` / 拼音码·助记码 `suffix` 图标 + 名称变更自动重算 / 「输入 + 触发」） | `.agents/rules/componentUseRule.md`「表单控件」 |
 | 字段控件补充（勾选驱动 `disabled` + 条件必填、`InputNumber` 默认 `0`、代码类强制大写） | `.agents/rules/componentUseRule.md`「表单控件」 |
-| 页签（`Tabs` 懒加载、`items` 动态生成）与新增 / 编辑态（`add` / `update`）驱动 | `.agents/rules/page-norm.md`「2. 对话框」 |
+| 页签（`Tabs` 懒加载、`items` 动态生成）与添加 / 编辑态（`add` / `update`）驱动 | `.agents/rules/page-norm.md`「2. 对话框」 |
 | 明细维护两段式（上部编辑区 + 下部列表、工具按钮默认禁用、选中行才启用） | `.agents/rules/page-norm.md`「2. 对话框」 |
 | 校验与联动（`Form.Item rules` 前后端双写、`Form.useWatch` / `useEffect`） | `.agents/rules/componentUseRule.md`「校验与联动」 |
 | 系统参数与码表 | `.agents/rules/servicesApiRule.md`「系统参数」 |
 | 共享组件（跨弹窗复用分区 / 页签） | `docs/FrontNormalize.md` §4.3.10 |
-| 按钮权限（权限 / 选中行 / 状态导致的禁用落到 `disabled`） | `.agents/rules/componentActionRule.md`「1. 主页面 componentAction.ts」 |
-| 请求层（`@webhis/shared/utils/request`，末参传 `this`）、页面 / 弹窗注册、`message.json` 与 registry / `componentAction.ts` 三处一致 | `.agents/rules/page-norm.md`「通用约束（重要）」、「i18n」；`.agents/rules/servicesApiRule.md`「函数写法」 |
+| 请求层（`@webhis/shared/utils/request`，末参传 `this`）、页面 / 弹窗注册、`message.json` 与 registry 的 `componentId` 一致 | `.agents/rules/page-norm.md`「通用约束（重要）」、「i18n」；`.agents/rules/servicesApiRule.md`「函数写法」 |
 
 > 上表即本册的**通用做法落点索引**：分册只写本界面特有项，通用做法一律按上表指向 `.agents/rules/*`（唯一来源），本册不复述。
 
@@ -242,7 +236,7 @@
 | 单选 | `Radio` / `Radio.Group` | 状态过滤 |
 | 复选 | `Checkbox` / `Checkbox.Group` | 见 §3.4.3 |
 | 颜色 | `ColorPicker` | 颜色类字段 |
-| 只读文本 | `Text`（超长省略 + hint） | 金额用 `TextAmount` |
+| 只读文本 | `Text`（超长省略 + hint） | 金额格式 / 列对齐按 `.agents/rules/tableRule.md`；其它列不设 `align` |
 | TableViewer | `ConfigTable` / `VirtualTable` / `Table` | 见 §5 |
 | CTabItem | `Tabs` | 弹窗页签 |
 | 按钮栏 | `Button` 组，底部右对齐 | 见 §6 |
@@ -255,7 +249,7 @@
 
 > 表格的**选型、列顺序 / 序号、行交互、列宽与横向滚动、排序分页、工具列与删除方式**等细则见 `.agents/rules/tableRule.md`（唯一来源）；本节只给本册的**线框口径**与落点指针，不复述规则正文。
 
-- 组件选型、列顺序与序号（`序号 → 操作列 → 数据列`）、操作列紧随序号、删除 / 恢复与二次确认：见 `.agents/rules/tableRule.md`「组件选择」「列顺序与序号」；**操作列宽按该列实际单元格内容适配**，同样见该册「列顺序与序号」；删除的**颜色语义**（危险 / 红）见 `.agents/rules/componentUseRule.md`「Button 颜色约定」。
+- 组件选型、列顺序与序号（`序号 → 操作列 → 数据列`）、操作列紧随序号、删除 / 恢复与二次确认：见 `.agents/rules/tableRule.md`「组件选择」「列顺序与序号」；**操作列宽按该列实际单元格内容适配**，同样见该册「列顺序与序号」。
 - 行交互与展示（主从表维护、设置页主列表默认点击行选中；表头与单元格不折行、日期只到天、长文本省略 + 悬浮完整、标识列只标「是」）：见 `.agents/rules/tableRule.md`「行交互与展示」。
 - 列宽与横向滚动（固定列禁用 `scroll={{ x: 'max-content' }}`，改用数值 = 各列宽 + `showNumWidth` + 选择列宽）：见 `.agents/rules/tableRule.md`「列宽与横向滚动（空数据 / 有数据必须一致）」。
 - 排序与分页（**每页条数不写死**，按表格可视高度计算）：见 `.agents/rules/tableRule.md`「排序与分页」。
@@ -267,12 +261,11 @@
 
 ## 6. 按钮约定
 
-> 按钮的**颜色语义与图标规则**（白底/图标、`green-button`、`blue-button`、危险红、主色 primary 等）见 `.agents/rules/componentUseRule.md`「Button 颜色约定」（唯一来源）；**底部按钮顺序（辅助在前、主操作在末）与居中**见 `.agents/rules/page-norm.md`「2. 对话框」。本节不复述规则正文，只列本册相关指针。
+> 按钮的**颜色语义与图标规则**（白底/图标、`green-button`、`blue-button`、主色 primary 等）见 `.agents/rules/componentUseRule.md`「Button 颜色约定」（唯一来源）；**底部按钮顺序（辅助在前、主操作在末）与居中**见 `.agents/rules/page-norm.md`「2. 对话框」。本节不复述规则正文，只列本册相关指针。
 
 - 按钮样式与常用操作按钮（增 / 删 / 改 / 查）带**语义图标**：见 `.agents/rules/componentUseRule.md`「Button 颜色约定」。
-- **添加 / 查询 / 重置的统一风格**：添加、查询用 `type="primary"` + 语义图标（`PlusOutlined` / `SearchOutlined`）+ 文字；重置用白底 + `UndoOutlined` + 文字「重置」；按钮文字统一用 `<span>{...}</span>` 包裹（如 `<span>{commonI18n.add}</span>`）；同一页面 / 弹窗内保持一致。
-- **删除 / 恢复 / 停用 / 终止 / 取消 / 作废 / 撤回等危险动作必须用危险主题色**：按钮 `type="primary" danger`，表格行内链接 `Link type="danger"`；不得沿用「刷新 / 过滤等非危险表级动作」的白底口径。
-- **危险动作执行前必须二次确认**：统一 `dialog.confirm`，取消时不得调用后端接口；规则见 `.agents/rules/componentUseRule.md`「危险操作二次确认」。
+- **添加 / 查询 / 重置的统一风格**：按钮颜色、图标与文字写法按 `.agents/rules/componentUseRule.md`「Button 颜色约定」，本册不复述；同一页面 / 弹窗内保持一致。
+- **危险动作**：执行前二次确认，取消时不得调用后端接口；规则见 `.agents/rules/componentUseRule.md`「危险操作二次确认」。
 - 底部按钮顺序按 `.agents/rules/page-norm.md`「2. 对话框」的默认口径（辅助动作在前、主操作（`type="primary"`）在末、居中）；**遗留截图仅作参考**，与规则不一致时以规则为准，差异记入该模块分册。
 - `(A)` / `(L)` 等字母是**遗留**快捷键标注（形如 `Alt+A`）；**新侧不实现快捷键**，是否在按钮文案中保留 `(A)` 等后缀由各模块分册声明（多数模块去掉），本册不作强制：见 `.agents/rules/page-norm.md`「2. 对话框」。
 - 按钮防抖（操作类按钮必做）：见 `.agents/rules/componentUseRule.md`「按钮防抖（操作类按钮必做）」。
@@ -322,15 +315,16 @@
 - [ ] 字段栅格密度符合 §3.4.1（每行 3 ~ 4 对）且行列对齐；**多列表单不设 `gap`**，新页面推荐 `<GridFormAntd gridOffsetLeft>` 左移 16px（负偏移，不再逐列加 `labelClassName="no-padding-left"`）；列轨 / 标签列写法见 `.agents/rules/componentUseRule.md`「表单控件」；必填 / 校验落 `required` / `rules`，留空保存时控件应显示红框与提示。
 - [ ] 复选框成组、每行个数与截图核对一致（§3.4.3）；勾选用 `Checkbox` 不用 `Switch`（`.agents/rules/componentUseRule.md`「表单控件」）。
 - [ ] 复杂区域按 §3.4.4 分层实现，层级 ≤3 且每层单一维度（`.agents/rules/page-norm.md`「2. 对话框」）。
-- [ ] 控件类型符合 §4 映射（下拉可搜索、弹出选择带 🔍、金额用 `TextAmount`），且组件均从 `@/base/ui` 引入（非官方 `antd`）；组件用法见 `.agents/rules/componentUseRule.md`「表单控件」。
+- [ ] 控件类型符合 §4 映射（下拉可搜索、弹出选择带 🔍）；金额格式与列对齐按 `.agents/rules/tableRule.md`；组件均从 `@/base/ui` 引入（非官方 `antd`）；组件用法见 `.agents/rules/componentUseRule.md`「表单控件」。
 - [ ] 表格：序号连续、表头**与单元格**都不折行、`rowKey` 非 index、`vid` 命名规范、`scroll={{ x }}` 用数值 —— 见 §5 与 `.agents/rules/tableRule.md`。
-- [ ] 维护类页面不显示分区标题、列表页工具条左竖线+过滤开关（过滤删除默认开启）/ 右聚合搜索框+按钮；**页面主体不含任何新增 / 编辑 / 明细维护表单**（表单只在弹窗 / 侧滑内；§3.1 / §3.1.1 与 `.agents/rules/page-norm.md`「1. 主页面」）。
+- [ ] **页面类型与表单归属**：维护 / 设置类列表页不显示分区标题、工具条左竖线 + 过滤开关（过滤删除默认开启）/ 右聚合搜索 + 按钮，页面主体不含维护表单（维护表单只在弹窗 / 侧滑内）；表单页 / 文档编辑器 / 向导页 / 详情页 / 查询报表页可按页面形态把表单放在页面主体（§3.1 / §3.1.1 与 `.agents/rules/page-norm.md`「1. 主页面」）。
+- [ ] **聚合搜索按语义识别**：编码类 / 描述类 / 拼音码类字段用一个 `Input.Search` 同时匹配；不按字段字面名判断，不拆成多个输入框（`.agents/rules/tableRule.md`「表格工具列、过滤与删除方式」）。
 - [ ] 主从表维护、设置页主列表行单击 = 选中；日期范围只到天；长文本省略 + 悬浮完整（`.agents/rules/tableRule.md`「行交互与展示」）。
 - [ ] 日期 / 日期时间 / 日期范围表单控件的值完整显示（`RangePicker` 约 240px，6 列栅格用 `colSpan={4}`；`DateTimePicker` 约 200px），未被栅格挤压省略（`.agents/rules/componentUseRule.md`「表单控件」）。
 - [ ] `placeholder` / `rules.message` / `new Error(...)` 等只接受字符串的位置使用 `i18n.xxx.props.text`，未直接传 i18n 对象（避免 `[object Object]`；`.agents/rules/componentUseRule.md`「校验与联动」）。
 - [ ] 弹窗底部按钮居中（`.agents/rules/page-norm.md`「2. 对话框」）。
-- [ ] 按钮样式与顺序符合 §6（颜色语义见 `.agents/rules/componentUseRule.md`「Button 颜色约定」）；添加 / 查询为 `type="primary"` + 语义图标 + 文字（文字用 `<span>` 包裹），重置为白底 + `UndoOutlined` + 文案「重置」；危险操作（删除 / 恢复 / 作废等）用危险样式，且执行前 `dialog.confirm` 二次确认。
+- [ ] 按钮样式与顺序符合 §6：颜色 / 图标 / 文字写法见 `.agents/rules/componentUseRule.md`「Button 颜色约定」；危险操作二次确认见同册「危险操作二次确认」。
 - [ ] 选择类弹窗的搜索行并入表格 `toolbar` 右侧；删除方式（操作列单行 / 多选批量）与业务相符（`.agents/rules/tableRule.md`「表格工具列、过滤与删除方式」）。
 - [ ] 尺寸、间距、主色符合 §7；样式与命名符合 §8。
-- [ ] **复用优先**：新增 class 前已搜 `src/pages` 同类写法；`Divider` / `Button` / `Tag` 优先默认样式 / 全局工具类；未重复造轮子，新增自定义 CSS 有必要性，且已清除本次改动引入的冗余 / 失效样式（§8 / `.agents/rules/pageStyleRule.md`「6. 复用优先与最小化自定义样式（强制）」）。
+- [ ] **复用优先**：添加 class 前已搜 `src/pages` 同类写法；`Divider` / `Button` / `Tag` 优先默认样式 / 全局工具类；未重复造轮子，添加自定义 CSS 有必要性，且已清除本次改动引入的冗余 / 失效样式（§8 / `.agents/rules/pageStyleRule.md`「6. 复用优先与最小化自定义样式（强制）」）。
 - [ ] 通用实现做法符合 §3.5；本界面已在对应分册给出「线框与布局要点」与「实现要点」，且与本册不冲突。

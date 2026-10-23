@@ -39,7 +39,7 @@
 | 门禁 | 内容 | 命令 / 方式 | 通过标准 |
 | --- | --- | --- | --- |
 | G1 | 构建 | `yarn build` | 无错误 |
-| G2 | 静态检查 | `yarn lint:js` | 无新增告警 |
+| G2 | 静态检查 | `yarn lint:js` | 无添加告警 |
 | G3 | 类型检查 | `npx tsc --noEmit -p tsconfig.root.json` | 无错误 |
 | G4 | 端到端手测 | 起 dev server 手动走查（可选：用 **Playwright MCP** 驱动浏览器留证，本地未配置则跳过） | 清单全过 |
 | G5 | 文档回填 | 本册推进记录 | 已更新 |

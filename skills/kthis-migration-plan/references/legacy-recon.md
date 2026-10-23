@@ -24,7 +24,8 @@
 - **入口定位**：按界面标题 / 菜单文案 / Editor ID 找 `plugin.xml` 的 `extensions`，再进对应 `ui.<mod>.*`。
 - **界面文案**（标签、按钮、页签名）：`.../ui.<mod>.<layer>/i18n/messages.properties`（GBK）。
 - **页签**：SWT 里常是 `CTabItem` / `CTabFolder`；**每个页签的字段与事件分别统计**，对应到独立册。
-- **新增 vs 编辑**：同一 Editor 常用不同入口/参数区分，注意新增态显示的页签/字段可能与编辑态不同。
+- **一个 Editor 可含多个 Page**：先列全 Editor 下的 Page / CTabItem，每个 Page 对应一个 WebHIS 页面并单独成册；再逐个统计字段 / 事件，不要只按 Editor 名拆册。
+- **添加 vs 编辑**：同一 Editor 常用不同入口/参数区分，注意添加态显示的页签/字段可能与编辑态不同。
 - **码表 / 系统参数**：值来自码表表或系统参数表，写文档时记录**码表编码**而非中文值。
 
 ## 3. GBK 检索

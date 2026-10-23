@@ -101,6 +101,24 @@ check_error_pair() { # $1=规则名 $2=出处 $3=命中正则A $4=同文件必�
   fi
 }
 
+check_warn_pair() { # $1=提示名 $2=出处 $3=命中正则A $4=同文件必须同时命中正则B $5=文件名(路径)过滤正则
+  local list found f
+  list="$(printf '%s\n' "${FILES}" | grep -E -- "$5" || true)"
+  found=""
+  while IFS= read -r f; do
+    [ -z "${f}" ] && continue
+    if grep -qE -- "$3" "${f}" 2>/dev/null && grep -qE -- "$4" "${f}" 2>/dev/null; then
+      found="${found}${f}:$(grep -nE -- "$3" "${f}" | head -1 | sed 's/^/ /')
+"
+    fi
+  done <<< "${list}"
+  if [ -n "${found}" ]; then
+    WARN=$((WARN + 1))
+    printf '! WARN   %s（出处：%s）\n' "$1" "$2"
+    printf '%s' "${found}" | sed 's/^/      /'
+  fi
+}
+
 check_error_missing() { # $1=规则名 $2=出处 $3=文件内命中正则A $4=文件内必须存在的正则B $5=文件名(路径)过滤正则
   local list found f
   list="$(printf '%s\n' "${FILES}" | grep -E -- "$5" || true)"
@@ -170,7 +188,7 @@ check_error_filtered "页面主体不得内嵌弹窗（表单 / 明细一律用 
   ".agents/rules/page-norm.md「1. 主页面」" \
   '<[A-Za-z]*(Modal|Drawer|Dialog)[ \t/>]' \
   '[Pp]age\.(jsx|tsx)$'
-check_error_pair "页面主体不得内嵌新增 / 编辑 / 明细维护表单（Page 里同现表单元素与「保存 / 提交」按钮；表单必须走弹窗 / 侧滑）" \
+check_warn_pair "页面主体出现表单 + 保存 / 提交：确认是否为维护 / 设置类列表页；表单页、文档编辑器、向导页、详情页、查询 / 报表页允许表单在页面主体" \
   ".agents/rules/page-norm.md「1. 主页面」" \
   '<GridFormAntd|<Field[[:space:]/>]|<Form[[:space:]/>]|GridFormItem' \
   '保存|提交' \
@@ -192,7 +210,7 @@ echo
 echo "== WARN（逐条人工确认）=="
 check_warn "弹窗内出现 <Switch：表单勾选应改用 Checkbox" \
   ".agents/rules/componentUseRule.md" '<Switch' '[Dd]ialog|[Ss]lip'
-check_warn "页面主体出现表单提交 onFinish：确认只是查询条件表单（新增 / 编辑 / 明细维护表单必须在弹窗 / 侧滑里）" \
+check_warn "页面主体出现表单提交 onFinish：确认只是查询条件表单（添加 / 编辑 / 明细维护表单：维护/设置类列表页应在弹窗 / 侧滑里；表单页/编辑器等按页面类型判定）" \
   ".agents/rules/page-norm.md「1. 主页面」" 'onFinish=' '[Pp]age\.(jsx|tsx)$'
 check_warn_filtered "vid 命名不合 ^[a-z]+_（应为 模块_文件名_xxx）" \
   ".agents/rules/tableRule.md" 'vid="[^"]*"' 'vid="[a-z]+_'

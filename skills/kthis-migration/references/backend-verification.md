@@ -31,7 +31,7 @@ mvn -pl webhis-<mod>-server-impl -am install -Dmaven.test.skip=true   # 只校�
 
 | # | 检查 | 通过标准 |
 | --- | --- | --- |
-| D1 | 新增 | 记录存在；`created_by` / `created_date_time` 被框架自动填（不是 null、不是调用方乱填） |
+| D1 | 添加 | 记录存在；`created_by` / `created_date_time` 被框架自动填（不是 null、不是调用方乱填） |
 | D2 | 修改 | `last_updated_by` / `last_updated_date_time` 变化；**未涉及的字段没有被覆盖**（`setModified` 语义） |
 | D3 | 删除/停用 | `defunct_ind` = `'Y'`，记录仍在；默认查询过滤 `'N'`，列表里消失 |
 | D4 | 多院区 | `entity_mstr_id` 写入正确；跨院区数据不串 |

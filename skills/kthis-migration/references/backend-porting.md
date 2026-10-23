@@ -33,7 +33,7 @@
 6. **mapper 目录**：`webhis-<mod>-server-impl/src/main/resources/mapper/`（共享 mapper 放 `<mod>-common-server-impl`）。
 7. 编译：`mvn -pl webhis-starter-api -am install -Dmaven.test.skip=true`。
 
-## 3. 新增接口四步
+## 3. 添加接口四步
 
 1. `-api`：加 `@PostMapping`（或 `@GetMapping`）方法，`@RequestMapping("/his/<mod>/<resource>")`。
 2. `-server`：加 `I<Name>Service` 方法，必要时加/改 VO（`...server.vo`）。
@@ -42,7 +42,7 @@
 
 约束与惯例：
 
-- **无统一 Result 包装**：controller 直接返回 VO / List / `PageableRespVo<T>`。仓库里**两种风格并存**（多数裸返回，少数 `CommonResult.success(...)`），新增时跟随所在模块的既有风格。
+- **无统一 Result 包装**：controller 直接返回 VO / List / `PageableRespVo<T>`。仓库里**两种风格并存**（多数裸返回，少数 `CommonResult.success(...)`），添加时跟随所在模块的既有风格。
 - 分页：见 §8（`PageableRespVo<T>` + `findPageableList(dao, "sqlId", params, pageable)`）。
 - 存储过程调用（如价格调整类）保留 `call(procName, params)` 形式。
 
@@ -104,7 +104,7 @@
 ## 11. 认证与会话
 
 - `/his/**` 按序挂 6 个拦截器（注册处 `autoconfig/ApiWebMvcConfigurer`）：限流 → ExtRequest → Session → ExtSession → 日志 → `RequestAuthInterceptor`。前 5 个来自闭源框架 `com.karrytech.framework.require.starter.interceptor.*`；登录会话放 ThreadLocal `com.karrytech.util.session.SessionFactory`。
-- **免登录白名单是 `interceptor/RequestAuthInterceptor` 的静态 `IGNORED_PATHS`**（`URIPaths` 只是 AntPath 匹配器）。典型条目：登录/验证码、`/his/app/common/**`、`/his/common/file/**`、`/his/common/parameters`、CA、第三方回调（`/his/**/interface/**`）等。**新增免登录接口必须往白名单加路径**，否则 `RequestAuthInterceptor.preHandle` 抛 `AUTH_EXPIRED` → 401。
+- **免登录白名单是 `interceptor/RequestAuthInterceptor` 的静态 `IGNORED_PATHS`**（`URIPaths` 只是 AntPath 匹配器）。典型条目：登录/验证码、`/his/app/common/**`、`/his/common/file/**`、`/his/common/parameters`、CA、第三方回调（`/his/**/interface/**`）等。**添加免登录接口必须往白名单加路径**，否则 `RequestAuthInterceptor.preHandle` 抛 `AUTH_EXPIRED` → 401。
 - **方法内 `createSession()` 没有共享实现**，各 controller 自己定义一个同名方法，判据统一是 `if (SessionFactory.get() == null)`，构造系统会话（`userMstrId = 0`、`userName = "系统管理员"`、`entityMstrId = 1`）。
   - 用它的场景：**没有登录用户**的入口 —— 内部调用、第三方回调、定时/批处理触发。
   - 有登录用户的普通业务接口**不要**加，避免掩盖真实的会话缺失。

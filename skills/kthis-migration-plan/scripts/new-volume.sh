@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # new-volume.sh —— 在已有的 docs/migration/<NN-模块>/ 中插入一册，并自动重排册号、重写导航与引用。
 #
-# 场景：多轮协作中新增/发现一个页签或弹窗，需要在既有册序中间插入。
+# 场景：多轮协作中添加/发现一个页签或弹窗，需要在既有册序中间插入。
 #
 # 用法：
 #   new-volume.sh --module-dir docs/migration/<NN>-<模块名> --title "<册名>" --type tab [--at 05]
