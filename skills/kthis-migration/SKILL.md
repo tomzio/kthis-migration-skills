@@ -75,7 +75,6 @@ description: 把遗留 KTHIS / eHealth（Eclipse RCP + SWT，Java 6 / GBK）的�
 ### 阶段 4 · 前端实现
 
 - 懒加载 + 注册：`@loadable/component` + `dynamicModule`，在 `<mod>ComponentRegistry.js` 注册。
-- **表单形态**：先判定页面类型——维护 / 设置类列表页的维护表单走弹窗 / 侧滑，页面主体只留「查询条件 + 工具条 + 表格」；默认页面形态（表单页、文档编辑器、向导页、详情页、查询 / 报表页）可把表单留在页面主体。**无法判定时让用户选 A（维护 / 设置类列表页）或 B（默认页面形态），不要自行假设。** 细则见 `.agents/rules/page-norm.md`「1. 主页面」与 [references/frontend-porting.md](references/frontend-porting.md) §10.2。
 - model 继承基类（`@webhis/shared/app/model/*`）：页面 `extendPage`（需未保存校验用 `extendEditablePage`）、弹窗 `extendPopup` / `extendEditablePopup`、带患者条 `extendWpbPage`。
 - 请求走 `@webhis/shared/utils/request` 的 `get/post/postWithParameter`（**最后参数必须传 `this`**）；弹窗统一 `app/openComponentPopup` + `componentId` 打开（`putPromise` 拿返回值），**禁止直接 import baseUi 的 Dialog**。
 - i18n：**实现阶段可先写中文字面量（便于调试）**；功能稳定后再按「i18n 补齐」阶段统一抽成 `message.json` —— 细则（每个菜单页面一份、`componentId` 三处一致）见 [references/frontend-porting.md](references/frontend-porting.md) §4。

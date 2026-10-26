@@ -75,7 +75,7 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 
 | 轮次 | 做什么 | 产出 / 确认点 |
 | --- | --- | --- |
-| R0 · 定界 | 确认模块（新侧代号）、范围、遗留入口、界面单元（Editor 下 Page 清单；每个 Page 对应一个 WebHIS 页面并单独成册），**先判定页面类型**（维护 / 设置类列表页 vs 默认页面形态，见 doc-structure §2 第 8 条），并**定档位**（轻量 / 标准 / 完整，见 §2.1）；**无法判定时必须让用户选 A / B，不得自行假设** | 范围、页面类型、遗留入口与档位 |
+| R0 · 定界 | 确认模块（新侧代号）、范围、遗留入口、界面单元（Editor 下 Page 清单；每个 Page 对应一个 WebHIS 页面并单独成册），**先判定页面类型**（维护 / 设置类列表页 vs 默认页面形态，见 `references/doc-structure.md` §2 第 8 条），并**定档位**（轻量 / 标准 / 完整，见 §2.1）；无法判定时按该条确认，不得自行假设 | 范围、页面类型、遗留入口与档位 |
 | R1 · 册规划 | 按档位盘点界面单元 → 排出「册规划表」（**宁少勿多**，没有对应内容的册不建）；按 R0 的页面类型落实表单归属与册结构（见 doc-structure §2 第 8 条），**每个维护表单都要标明落在哪个弹窗 / 页签 / 侧滑册** | **先给册规划表，等用户确认**再动手 |
 | R2 · 搭骨架 | 用脚本生成骨架，写 `_进度台账.md` | 目录 + 空册 + 台账 |
 | R3+ · 逐册起草 / 修订 | **一次一册**：读遗留源码 → 按模板填 → 交付 → 收批注后修订（必要时用 `new-volume.sh` 插入 / 重排册） | 每册后**请用户批注**；更新台账「修订记录」 |
@@ -93,6 +93,8 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 
 写作口径（以「功能行为」而非遗留实现为准：字段表 / 线框 / 事件表写法）→ **[references/writing-rules.md](references/writing-rules.md)**。
 
+线框要求见 [references/writing-rules.md](references/writing-rules.md)「线框与布局要点」；不得套用固定模板。
+
 ## 脚本
 
 ```sh
@@ -101,7 +103,7 @@ S=<本技能目录>/scripts          # 本仓库内即 .agents/skills/kthis-migr
 # 1) 搭建模块骨架（册序 = --volume 顺序；--no/--name/--code/--volume 由 R1 结论填入）
 $S/scaffold-docs.sh --no <NN> --name <模块名> --code <模块代号> [--legacy-ui <遗留入口>] \
   --volume "<主页面>:main" --volume "<弹窗外壳>:shell" --volume "<页签>:tab" …
-#   轻量档（简单功能）加 --lite：默认生成 00-总览与通用约定.md + 01-功能说明.md；先判定页面类型——维护 / 设置类列表页的维护表单按 references/doc-structure.md §2 第 8 条拆弹窗 / 页签 / 侧滑册；默认页面形态（含独立表单页 / 设置页）的 01 即该页面，不强行造主页面册 / 弹窗册；后续可用 new-volume.sh 增册；
+#   轻量档（简单功能）加 --lite：默认生成 00-总览与通用约定.md + 01-功能说明.md；先判定页面类型——维护 / 设置类列表页的维护表单拆弹窗 / 页签 / 侧滑册；默认页面形态（含独立表单页 / 设置页）的 01 即该页面，不强行造主页面册 / 弹窗册；后续可用 new-volume.sh 增册；
 #   首次可加 --global-layout 生成跨模块的 00-前端布局规范.md
 #   该册只在「不存在」时生成，模板更新后不会自动同步 → 用 --refresh-layout 按当前模板刷新它（只动这一册）
 
@@ -136,4 +138,4 @@ $S/rename-screenshots.sh <迁移文档根目录>/images <迁移文档根目录> 
 - [references/quality-gates.md](references/quality-gates.md) —— 验收门禁清单（自动 + 人工）
 - [references/screenshots.md](references/screenshots.md) —— 截图识别、按功能命名与引用更新（命名规范在此）；批量改名脚本 [scripts/rename-screenshots.sh](scripts/rename-screenshots.sh)（`--audit` 审计命名 / 失效引用 / 未引用）
 
-> **跨工具（OpenCode / Claude Code / Trae IDE）**：在本仓库内使用时，本技能的唯一原始目录是 `.agents/skills/kthis-migration-plan/`，其它工具目录均为指向它的软链接（勿另存副本），接入方式与 Windows 软链接注意事项见仓库 `.agents/README.md`；全局安装（如 `~/.config/opencode/skills/`）时无软链要求，路径口径见上节「安装位置与路径口径」。
+> **跨工具**：在本仓库内使用时，本技能的唯一原始目录是 `.agents/skills/kthis-migration-plan/`，其它工具目录均为指向它的软链接（勿另存副本），接入方式与 Windows 软链接注意事项见仓库 `.agents/README.md`；全局安装到各工具自己的用户级 skills 目录（常见为 `~/<工具>/skills/`，具体以工具约定为准）时无软链要求，路径口径见上节「安装位置与路径口径」。

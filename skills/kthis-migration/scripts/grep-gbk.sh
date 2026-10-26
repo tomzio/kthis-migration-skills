@@ -11,12 +11,17 @@
 # 请先运行 scripts/setup-paths.sh 生成配置（每个开发者路径可能不同）。
 #
 # 说明: 遗留源码是 GBK，中文无法被 grep/rg 直接命中（rg 本机通常也没装）。
-#       这里对每个文件先 iconv 转 UTF-8 再 grep。
+#       这里对每个文件先 iconv 转 UTF-8 再 grep；Windows 需 Git Bash / WSL 且 iconv 可用。
 # [dir] 建议缩到具体项目/子目录，避免遍历整个大型遗留工作区。
 #
 # 注意: 不要开 set -e / pipefail —— 循环里 grep 无命中返回 1 是正常情况，
 #       开 -e 会让脚本在第一个不匹配的文件处提前退出、什么都不输出。
 set -u
+
+if ! command -v iconv >/dev/null 2>&1; then
+  echo "未找到 iconv；macOS / Linux 通常自带，Windows 请使用 Git Bash / WSL 或安装 iconv。" >&2
+  exit 2
+fi
 
 # 公共：SKILL_DIR 与项目根探测
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/lib-root.sh"
@@ -35,8 +40,7 @@ if [ -z "$DIR" ]; then
     for f in "${KTHIS_MIGRATION_CONFIG:-}" "${PROJ_ROOT}/.agents/paths.env"; do
       [ -n "$f" ] || continue
       [ -f "$f" ] || continue
-      # shellcheck disable=SC1090
-      . "$f"
+      load_paths_config "$f"
       [ -n "${KTHIS_LEGACY_DIR:-}" ] && break
     done
     DIR="${KTHIS_LEGACY_DIR:-}"

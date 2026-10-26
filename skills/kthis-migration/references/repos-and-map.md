@@ -14,6 +14,7 @@
 
 - 生成 / 校验：`scripts/setup-paths.sh`（自动探测并写出到项目 `.agents/paths.env`；`--legacy/--front/--server <dir>` 显式指定；`--out <file>` 改写出位置；`--print` 仅查看当前值；`--detect` 只探测不写；`--force` 强制重探覆盖；`--help` 看全部）。
 - `.agents/paths.env` 是本机私有文件，已被 `.gitignore` 忽略；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`（可提交到仓库）。
+- **跨平台运行**：`.sh` 脚本需 bash（macOS / Linux / Windows Git Bash 或 WSL）；原生 CMD/PowerShell 不支持。`grep-gbk.sh` 依赖 `iconv`；`chmod 600` 在 Git Bash 可能不生效。
 - 下文凡写 `<遗留>` / `<前端>` / `<后端>`，均指上述变量解析出的绝对路径；执行 skill 自带脚本用「skill 根目录 + 相对路径」。
 
 ## 仓库
@@ -109,9 +110,6 @@ src/pages/<mod>/<mod>ComponentRegistry.js    组件注册表
 
 **注意**：迁移文档可能写着「尚无页面代码」，但工作区其实已落地——**永远以当前工作区代码为准**，文档随后回填。
 
-## 推荐落地流程
+## 落地流程
 
-1. 读对应迁移分册，在遗留侧把功能端到端跑通：界面 → 事件 → 服务接口 → SQL → 表。
-2. 按映射表逐层移植到新侧（后端接口 + 前端页面/弹窗/model/注册/i18n）。
-3. 前端结构：折叠查询表单 + 结果表格 + 分类树 + 右侧抽屉或多 Tab 表单 + 操作列；骨架与排版细节见迁移文档的 `00-前端布局规范.md`。
-4. 页面/弹窗按 `componentId` 注册进 `<mod>ComponentRegistry.js`，弹窗用 `app/openComponentPopup` 打开。
+按 [kthis-migration-plan/SKILL.md](../../kthis-migration-plan/SKILL.md) 的 R0–R4 与仓库根 `AGENTS.md`「功能迁移」执行；页面类型与表单落位以 `.agents/rules/page-norm.md`「1. 主页面」为准。

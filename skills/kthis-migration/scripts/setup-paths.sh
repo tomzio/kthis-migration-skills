@@ -77,17 +77,17 @@ check_kind() { # $1=kind $2=dir
 }
 
 # ---- 读取现有配置（OUT > 项目 .agents/paths.env）----
+# 只解析三个 KEY=VALUE，绝不 source 用户配置，避免配置里的命令被执行。
 if [ "$FORCE" = 0 ]; then
   for f in "$OUT" "$PROJ_CFG"; do
     [ -n "$f" ] || continue
     [ -f "$f" ] || continue
-    # shellcheck disable=SC1090
-    . "$f"
+    load_paths_config "$f"
     break
   done
-  [ -n "${KTHIS_LEGACY_DIR:-}" ] && LEGACY="${LEGACY:-$KTHIS_LEGACY_DIR}"
-  [ -n "${WEBHIS_FRONT_DIR:-}" ]  && FRONT="${FRONT:-$WEBHIS_FRONT_DIR}"
-  [ -n "${WEBHIS_SERVER_DIR:-}" ] && SERVER="${SERVER:-$WEBHIS_SERVER_DIR}"
+  LEGACY="${LEGACY:-${KTHIS_LEGACY_DIR:-}}"
+  FRONT="${FRONT:-${WEBHIS_FRONT_DIR:-}}"
+  SERVER="${SERVER:-${WEBHIS_SERVER_DIR:-}}"
 fi
 
 # ---- 自动探测 ----
@@ -161,11 +161,21 @@ fi
 
 # ---- 写出 ----
 mkdir -p "$(dirname "$OUT")"
-cat > "$OUT" <<EOF
-# 三仓库路径配置（由 scripts/setup-paths.sh 生成，可按需手改）
-# 本文件为本机私有配置，勿提交/分发（已 gitignore）。模板见 .agents/paths.env.example。
-KTHIS_LEGACY_DIR=$LEGACY
-WEBHIS_FRONT_DIR=$FRONT
-WEBHIS_SERVER_DIR=$SERVER
-EOF
+
+# 路径用 shell 单引号包裹，避免 $()、反引号、空格、引号等被后续 source 执行 / 破坏语法。
+quote_value() {
+  local v="$1" repl="'\\''"
+  v="${v//\'/$repl}"
+  printf "'%s'" "$v"
+}
+
+{
+  printf '%s\n' \
+    '# 三仓库路径配置（由 scripts/setup-paths.sh 生成，可按需手改）' \
+    '# 本文件为本机私有配置，勿提交/分发（已 gitignore）。模板见 .agents/paths.env.example。'
+  printf 'KTHIS_LEGACY_DIR=%s\n' "$(quote_value "$LEGACY")"
+  printf 'WEBHIS_FRONT_DIR=%s\n' "$(quote_value "$FRONT")"
+  printf 'WEBHIS_SERVER_DIR=%s\n' "$(quote_value "$SERVER")"
+} > "$OUT"
+chmod 600 "$OUT" 2>/dev/null || true
 echo "已写入 ${OUT}"
