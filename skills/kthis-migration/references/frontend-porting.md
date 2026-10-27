@@ -95,7 +95,7 @@ bash .agents/skills/kthis-migration/scripts/check-frontend.sh src/pages/<mod>/<�
 
 | 判定 | 出处 |
 | --- | --- |
-| **页面类型与表单形态**：按 `.agents/rules/page-norm.md`「1. 主页面」判定；不确定时问用户「维护表单是否进弹窗」。**A（是）**：维护表单在弹窗 / 侧滑，页面主体只留查询条件 + 工具条 + 表格；**B（否，默认页面形态）**：表单页 / 文档编辑器 / 向导 / 详情 / 查询报表页允许表单在页面主体 | `.agents/rules/page-norm.md`「1. 主页面」 |
+| **页面类型与表单形态**：按 `.agents/rules/page-norm.md`「1. 主页面」判定；不确定时问用户「维护表单是否进弹窗」。**A（是）**：维护表单进弹窗（主从表 / 明细列表进侧滑），页面主体只留查询条件 + 工具条 + 表格；**B（否，默认页面形态）**：表单页 / 文档编辑器 / 向导 / 详情 / 查询报表页允许表单在页面主体 | `.agents/rules/page-norm.md`「1. 主页面」 |
 | **Editor → Page**：一个 Editor 可含多个 Page，每个 Page 对应一个 WebHIS 页面并单独成册；册名与内容一致，不强行造空主页面册 | `.agents/skills/kthis-migration-plan/references/doc-structure.md` §2 第 2 / 8 条 |
 | **迁移落点**：`componentId` 两处一致（registry `case` / `message.json`）、service 传 `this`、`message.json` 齐全、`app/openComponentPopup` | 本文 §1–§4 |
 

@@ -36,6 +36,8 @@ detect_mig_dir() {
 # ---- sed 就地替换：macOS 用 BSD sed（-i ''），Linux 用 GNU sed（-i）----
 sed_inplace() { if sed --version >/dev/null 2>&1; then sed -i "${1}" "${2}"; else sed -i '' "${1}" "${2}"; fi; }
 
+# 仅用于技能自带模板的占位符替换；不要把遗留源码 / 截图 / 用户输入传入。
+# subst 不是 sanitizer，不能防提示注入。
 # ---- 替换占位符：subst <file> <key> <value> ----
 subst() {
   local f="${1}" k="${2}" v="${3}" esc

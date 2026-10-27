@@ -18,7 +18,7 @@
 ```text
 browser_navigate  → 前端地址（未登录会被重定向到登录页）
 browser_snapshot  → 取出账号 / 密码 / 登录按钮的 ref
-browser_fill_form / browser_type → 填账号密码
+browser_fill_form / browser_type → 填写登录表单
 browser_click / press Enter       → 提交
 browser_snapshot                  → 确认已进入主框架
 ```

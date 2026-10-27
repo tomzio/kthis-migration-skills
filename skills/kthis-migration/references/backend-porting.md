@@ -116,7 +116,7 @@
 - 包名多为 `com.karrytech.webhis.<mod>`，但个别模块（如 emr / record）仍是 `com.karrytech.his.*`；`webhis-common-*` 里还留着 `com.kompakar.ehealth.base.util`。
 - 响应形态不统一（裸对象/数组 vs `{code,data}` / `CommonResult.success`），前端按各端点实际形态处理。
 - 启动器只依赖各域的 `-api` 与 `-server-impl`；新建域时漏了这一步，接口会 404。
-- `application-jdbc.properties` 可能有未解决的 Git 冲突标记，**改库配置前看清实际生效行**。
+- 新侧数据源配置可能有未解决的 Git 冲突标记，**改库配置前看清实际生效行**。
 
 ## 13. 构建与运行
 

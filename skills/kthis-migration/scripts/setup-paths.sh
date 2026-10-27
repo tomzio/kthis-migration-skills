@@ -64,7 +64,7 @@ if [ -z "$OUT" ]; then
 fi
 
 # ---- 校验器：判断某个目录是不是目标仓库 ----
-is_legacy() { [ -d "$1/com.kompakar.ehealth.base" ] || [ -f "$1/eHealth/WebContent/WEB-INF/jdbc.properties" ]; }
+is_legacy() { [ -d "$1/com.kompakar.ehealth.base" ] || [ -d "$1/eHealth" ]; }
 is_front()  { [ -f "$1/package.json" ] && [ -d "$1/src/pages" ]; }
 is_server() { [ -f "$1/pom.xml" ] && [ -d "$1/webhis-starter-api" ]; }
 

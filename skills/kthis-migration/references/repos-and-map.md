@@ -1,6 +1,6 @@
 # 三仓库、命令与逐层映射
 
-迁移工作固定横跨三个仓库。**遗留是业务真源，新侧是目标**。新前端仓库根的 `AGENTS.md` 是最权威的本地约定（遗留 / 后端仓库当前**没有** `AGENTS.md`，以源码为准）；本文件只做速查与导航。
+迁移工作固定横跨三个仓库。**遗留是业务真源，新侧是目标**。新前端仓库根的 `AGENTS.md` 是最权威的本地约定；遗留仓库根的 `AGENTS.md` 提供项目简介、架构速览与数据库只读策略；后端仓库当前**没有** `AGENTS.md`，以源码为准；本文件只做速查与导航。
 
 ## 路径配置（每个开发者不同）
 
@@ -25,14 +25,14 @@
 | 新前端 WebHIS | `WEBHIS_FRONT_DIR` | React 18.3 + antd 4.24 + dva 3.0.0-alpha + @formily 2；rspack（dev）/ webpack（prod）；yarn workspaces monorepo |
 | 新后端 WebHIS | `WEBHIS_SERVER_DIR` | Spring Boot 2.7.8 + MyBatis（手写 XML）单体；Maven 多模块；Java 8 / UTF-8；入口 `webhis-starter-api`（端口 9800） |
 
-遗留侧入口说明（**若存在**）：`<遗留>/AGENTS.md`（通常只含项目简介与架构速览；没有也不影响，直接读源码即可）。⚠️ 遗留侧**不一定**有迁移清单或原始分析文档；若另有 `docs/migration/` 之类的原始材料，只作**参考线索**，一律**以源码为准**。
+遗留侧入口说明：`<遗留>/AGENTS.md`（项目简介、架构速览与数据库只读策略；没有也不影响，直接读源码即可）。⚠️ 遗留侧**不一定**有迁移清单或原始分析文档；若另有 `docs/migration/` 之类的原始材料，只作**参考线索**，一律**以源码为准**。
 
 ## 常用命令
 
 ### 遗留（只读对照）
 
 - 读 GBK 源码、按中文 / 标识符检索（`iconv` / `grep-gbk.sh` 用法）→ [legacy-tracing.md](legacy-tracing.md) §GBK 检索。
-- 遗留库是 Oracle；连接串 / 账号在 `<遗留>/eHealth/WebContent/WEB-INF/jdbc.properties`（对照表结构时**只读**查询）。
+- 遗留库是 Oracle；数据库连接与只读验证按 `<遗留>/AGENTS.md` 的数据库配置执行。
 
 ### 前端（`WEBHIS_FRONT_DIR`，Node ≥ 18）
 
