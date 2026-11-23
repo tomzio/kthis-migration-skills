@@ -112,7 +112,7 @@
 
 ## 12. 会踩的坑
 
-- **模块名 ≠ 业务归属**：`webhis-charge-*` 里没有业务代码；收费在 `webhis-pa-*` / `webhis-common-*`。迁移前先读代码。
+- **模块名 ≠ 业务归属**：接口所在的模块以源码为准，不要按中文模块名推断。迁移前先读代码确认。
 - 包名多为 `com.karrytech.webhis.<mod>`，但个别模块（如 emr / record）仍是 `com.karrytech.his.*`；`webhis-common-*` 里还留着 `com.kompakar.ehealth.base.util`。
 - 响应形态不统一（裸对象/数组 vs `{code,data}` / `CommonResult.success`），前端按各端点实际形态处理。
 - 启动器只依赖各域的 `-api` 与 `-server-impl`；新建域时漏了这一步，接口会 404。

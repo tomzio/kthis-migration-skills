@@ -155,10 +155,61 @@ check_error_templateColumns() { # templateColumns 的值里去掉所有 minmax(.
   found=$(hits 'templateColumns="[^"]*"' | _tp_bare_1fr)
   if [ -n "${found}" ]; then
     ERR=$((ERR + 1))
-    printf '✗ ERROR  %s（出处：%s）\n' "templateColumns 不裸用 1fr（用 minmax(0,1fr)）" "docs/migration/00-前端布局规范.md §3.4"
+    printf '✗ ERROR  %s（出处：%s）\n' "templateColumns 不裸用 1fr（用 minmax(0,1fr)）" ".agents/skills/kthis-migration-plan/templates/00-前端布局规范.md.tpl §3.4"
     printf '%s\n' "${found}" | sed 's/^/      /'
   else
     printf '✓        %s\n' "templateColumns 不裸用 1fr（用 minmax(0,1fr)）"
+  fi
+}
+
+# 逻辑删除状态不得做成表格列：列对象内（同缩进的最近 title，前后 10 行）title 含「删除 / delete」且 dataIndex 为 defunctInd；跳过注释行
+check_error_delete_column() { # $1=规则名 $2=出处
+  local f out found=""
+  while IFS= read -r f; do
+    [ -z "${f}" ] && continue
+    out=$(awk '
+      FNR == 1 { split("", line); n = 0 }
+      { line[++n] = $0 }
+      END {
+        for (i = 1; i <= n; i++) {
+          t = line[i]
+          if (t ~ /^[[:space:]]*(\/\/|\*|\/\*)/) continue
+          if (t !~ /dataIndex:[[:space:]]*.defunctInd./) continue
+          if (t ~ /title:.*([Dd]elete|删除)/) { printf "%s:%d:%s\n", FILENAME, i, t; continue }
+          m = match(t, /^[[:space:]]*/); ind = RLENGTH; hit = 0
+          for (j = i - 1; j >= 1 && j >= i - 10; j--) {
+            u = line[j]
+            if (u ~ /^[[:space:]]*(\/\/|\*|\/\*)/) continue
+            mm = match(u, /^[[:space:]]*/)
+            if (mm && RLENGTH < ind && u ~ /^[[:space:]]*}/) break
+            if (mm && RLENGTH == ind && u ~ /title:/) {
+              hit = 1
+              if (u ~ /title:.*([Dd]elete|删除)/) printf "%s:%d:%s\n", FILENAME, i, t
+              break
+            }
+          }
+          if (hit) continue
+          for (j = i + 1; j <= n && j <= i + 10; j++) {
+            u = line[j]
+            if (u ~ /^[[:space:]]*(\/\/|\*|\/\*)/) continue
+            mm = match(u, /^[[:space:]]*/)
+            if (mm && RLENGTH < ind && u ~ /^[[:space:]]*}/) break
+            if (mm && RLENGTH == ind && u ~ /title:/) {
+              if (u ~ /title:.*([Dd]elete|删除)/) printf "%s:%d:%s\n", FILENAME, i, t
+              break
+            }
+          }
+        }
+      }' "${f}" 2>/dev/null)
+    [ -n "${out}" ] && found="${found}${out}
+"
+  done <<< "${FILES}"
+  if [ -n "${found}" ]; then
+    ERR=$((ERR + 1))
+    printf '✗ ERROR  %s（出处：%s）\n' "$1" "$2"
+    printf '%s' "${found}" | sed 's/^/      /'
+  else
+    printf '✓        %s\n' "$1"
   fi
 }
 
@@ -197,6 +248,8 @@ check_error_filtered "标识（布尔）列 'Y' 应渲染 <Icon type=\"yes-green
   ".agents/rules/tableRule.md「标识（布尔）列只标『是』」" \
   "'√'" \
   '[Pp]age\.(jsx|tsx)$'
+check_error_delete_column "表格不得设「删除」状态列（逻辑删除用「过滤删除」开关 + 行高亮 + 操作列「删除 / 恢复」表达）" \
+  "kthis-migration 技能 references/frontend-porting.md §6（遗留「删除」列不迁移）"
 check_error_filtered "多列表单禁止给 GridFormAntd 设 gap：水平间距由 label padding 统一提供（组内 8px / 组间 16px 已默认成立），再加 gap=\"0 16px\" 会把组间拉到 32px" \
   ".agents/rules/componentUseRule.md「表单控件」" \
   'gap=' \

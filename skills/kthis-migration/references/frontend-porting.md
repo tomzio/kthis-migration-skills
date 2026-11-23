@@ -36,7 +36,7 @@
 
 ## 5. 会踩的坑
 
-> 通用坑的规则正文以仓库 `.agents/rules/*` 为准：`updateState` 改二级结构、effect 的 `context`、表格 `key` / `vid`、ESLint 禁导、生产构建剥离 `console.log` 见 `.agents/rules/page-norm.md`「通用约束（重要）」、`.agents/rules/tableRule.md`「虚拟表格 / 排序表格」、`.agents/rules/FrontNormalize.md`「必读要点（摘要）」。本节只列迁移特有的坑。
+> 通用坑的规则正文以仓库 `.agents/rules/*` 为准：`updateState` 改二级结构、effect 的 `context`、表格 `key` / `vid`、ESLint 禁导、生产构建剥离 `console.log` 见 `.agents/rules/page-norm.md`「通用约束（重要）」、`.agents/rules/tableRule.md`「虚拟表格 / 排序表格」、`.agents/rules/FrontNormalize.md`「硬约束摘要」。本节只列迁移特有的坑。
 
 - 路径别名 `@brickio/ui/*`、`@webhis/shared/*` 解析到 packages 的**编译产物 `es/`**；改 `packages/*/src` 不会即时生效，需重新构建（见 §7）。
 - 路由 / 菜单由后端下发，URL 形如 `/index/:menu/:page`；model 不是自动注册，靠 `appRuntime.model(...)` 逐个注册。
@@ -45,6 +45,9 @@
 
 > 排版 / 骨架 / 栅格 / 分区 / 表格 / 按钮 / 尺寸**一律以迁移文档的 `00-前端布局规范.md` 为准**；实现约束以 `.agents/rules/pageStyleRule.md`、`.agents/rules/tableRule.md`、`.agents/rules/page-norm.md` 与 `docs/FrontNormalize.md` 为准。本节只记迁移特有项。
 
+- **遗留的「删除」列不迁移**：遗留维护表格常用一列展示删除状态（`defunct_ind` 渲染绿勾 / `√` / 「是」），新侧不设该列（口径见 `.agents/rules/tableRule.md`「行交互与展示」）；去掉时同步减 `scroll.x` 与列宽。判定：列标题不含「删除」，`defunctInd` 只出现在行样式与操作列判断里。
+- **遗留的独立「全选」控件不迁移**：表格 `rowSelection` 表头自带全选，工具条 / 表格外再放一个「全选」属重复（判据见 `.agents/rules/tableRule.md`「排序与分页」）；后台分页需要跨页全选时除外。
+- **弹窗 / 侧滑内表格高度按剩余空间动态计算**：不沿用遗留的固定高度；`scroll.y` 由容器可视高度算出（`clientHeight` − 表头 / 工具条，监听 `resize` 与 `ResizeObserver`，最小 160），口径见 `.agents/rules/pageStyleRule.md`「2. 表格组件」。
 - 复用优先：`src/common`（table / advancedForm / combobox / patienttree）与 `@/base/ui`，**不自行造轮子**；能靠组件 props 表达的不写 CSS；禁止 `!important`。
 - 「标签 / 文本 / 控件没对齐」类问题按 **§8 处置顺序**判断改哪里，不要上手就写 CSS 或改公用组件。
 
@@ -62,7 +65,7 @@ npx tsc --noEmit -p tsconfig.root.json   # 类型检查；跑完删 tsconfig.roo
 
 > 用 `yarn lint:js`（`yarn lint:ts` 是坏的，指向已改名的 `tsconfig.base.json`）；**无测试框架**。路径别名解析到 packages 的编译产物 `es/`，改 `packages/*/src` 必须 `yarn build:deps`（见 §5）。
 
-提交前手测：添加 / 编辑、必填 / 条件必填、显隐 / 禁用 / 联动、校验提示语、保存 / 删除 / 调价流程与遗留一致。dev 代理（`/his`、`/flow`、`/DCWriterDemo`）配在 `scripts/rspack.dev.js`，不在 `.env`。
+提交前手测：添加 / 编辑、必填 / 条件必填、显隐 / 禁用 / 联动、校验提示语、保存 / 删除等流程与遗留一致。dev 代理（`/his`、`/flow`、`/DCWriterDemo`）配在 `scripts/rspack.dev.js`，不在 `.env`。
 
 > 浏览器端到端走查（含**可选**的 Playwright MCP 驱动方式、清单 P1–P10、证据留存格式）见 **[e2e-verification.md](e2e-verification.md)**；缺 Playwright 不阻塞。
 
@@ -75,6 +78,7 @@ npx tsc --noEmit -p tsconfig.root.json   # 类型检查；跑完删 tsconfig.roo
 > 通用表单控件 / 栅格 / 对齐以 `.agents/rules/componentUseRule.md` §表单控件 与迁移文档 `00-前端布局规范.md` §3.4 为准，本册不复述。
 
 - **不要照搬遗留布局**：`Field` / `FieldGroup` 混用、输入框旁另起 `Button`、手工拼「输入 + 图标」等写法，一律按 `.agents/rules/componentUseRule.md` §表单控件 重写。
+- **表单级按钮放栅格内并右对齐**：保存 / 取消 / 确定等动作作为 `GridFormAntd` 的最后一个 `GridItem`（`textAlign: 'right'`）；末行剩余空间放得下就与最后一组字段同行、不换行，放不下再独占一行，仍右对齐。弹窗底部按钮仍按 `.agents/rules/page-norm.md`「2. 对话框」用 `FooterPortal`，本条不覆盖。
 
 ## 10. 落地前自查清单
 
