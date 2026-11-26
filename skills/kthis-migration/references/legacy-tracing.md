@@ -4,7 +4,7 @@
 
 > 原则：**代码优先于文档**。文档与源码冲突时信源码。截图（`<前端>/docs/migration/images/`）只用于核对标签与控件顺序，完整功能以代码为准；截图的添加 / 改名 / 引用更新属**文档阶段**（见 `kthis-migration-plan` 技能的 `references/screenshots.md`）。
 
-> 路径：遗留仓库根 = 项目根 `.agents/paths.env` 的 `KTHIS_LEGACY_DIR`（缺配置跑 `scripts/setup-paths.sh`，细节见 [repos-and-map.md](repos-and-map.md) §路径配置）。下文 `<遗留>` 即该目录，`<skill根>` 指本 skill 根目录。
+> 路径：遗留仓库根 = 项目根 `.agents/paths.env` 的 `KTHIS_LEGACY_DIR`（缺配置时的探测 / 写入流程见 [repos-and-map.md](repos-and-map.md) §路径配置）。下文 `<遗留>` 即该目录，`<skill根>` 指本 skill 根目录。
 
 ## 遗留架构速览
 

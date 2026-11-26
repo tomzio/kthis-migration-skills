@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
-# 在遗留 KTHIS/eHealth 源码（Java 6 / GBK）里按中文或标识符检索。
+# 在遗留 KTHIS/eHealth（Java 6 / GBK）源码里按中文或标识符检索。
 #
 # 用法:
-#   grep-gbk.sh <pattern> [dir]            # 打印命中行（前缀为文件路径:行号）
-#   grep-gbk.sh <pattern> [dir] --files    # 只打印命中文件路径
+#   grep-gbk.sh <pattern> [dir]         # 打印命中行
+#   grep-gbk.sh <pattern> [dir] --files # 只打印命中文件
 #
-# [dir] 省略时依次取：$KTHIS_LEGACY_DIR 环境变量 > 路径配置里的 KTHIS_LEGACY_DIR。
-# 路径配置读取顺序：KTHIS_MIGRATION_CONFIG > <项目根>/.agents/paths.env。
-# <项目根> 的确定：技能所在仓库根（含 .agents/）> $KTHIS_PROJECT_ROOT > 从当前目录逐级向上找含 .agents/ 或 docs/migration/ 的目录。
-# 请先运行 scripts/setup-paths.sh 生成配置（每个开发者路径可能不同）。
+# [dir] 省略时取 $KTHIS_LEGACY_DIR；也可读 $KTHIS_MIGRATION_CONFIG 或 <项目根>/.agents/paths.env。
+# 未配置时运行 scripts/setup-paths.sh 查看探测结果，确认后加 --write。
+# 逐文件 iconv GB18030 → UTF-8 再 grep；Windows 需 Git Bash / WSL。
+# [dir] 建议缩到具体项目/子目录，避免遍历整个工作区。
 #
-# 说明: 遗留源码是 GBK，中文无法被 grep/rg 直接命中（rg 本机通常也没装）。
-#       这里对每个文件先 iconv 转 UTF-8 再 grep；Windows 需 Git Bash / WSL 且 iconv 可用。
-# [dir] 建议缩到具体项目/子目录，避免遍历整个大型遗留工作区。
-#
-# 注意: 不要开 set -e / pipefail —— 循环里 grep 无命中返回 1 是正常情况，
-#       开 -e 会让脚本在第一个不匹配的文件处提前退出、什么都不输出。
+# 不要开 set -e / pipefail：grep 无命中返回 1 是正常情况。
 set -u
 
 if ! command -v iconv >/dev/null 2>&1; then
@@ -49,7 +44,7 @@ fi
 
 if [ -z "$DIR" ]; then
   echo "未指定检索目录，且未配置 KTHIS_LEGACY_DIR。" >&2
-  echo "请先运行: ${SKILL_DIR}/scripts/setup-paths.sh（会按需落位模板并生成 <项目根>/.agents/paths.env）" >&2
+  echo "请先运行: ${SKILL_DIR}/scripts/setup-paths.sh 查看探测结果并按提示加 --write 写入 <项目根>/.agents/paths.env" >&2
   echo "也可设置 KTHIS_LEGACY_DIR / KTHIS_PROJECT_ROOT，或显式传入目录: grep-gbk.sh <pattern> <dir>" >&2
   exit 2
 fi

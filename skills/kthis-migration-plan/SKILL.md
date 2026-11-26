@@ -41,7 +41,7 @@ description: 为遗留系统功能生成新一代系统（WebHIS：React + antd 
 
 ## 路径与仓库
 
-本机三仓库（遗留 / 前端 / 后端）的绝对路径见**项目根** `.agents/paths.env`（每个开发者不同；缺失时运行 `kthis-migration` 技能的 `scripts/setup-paths.sh`，或直接询问用户）；技能内不写死任何绝对路径。
+本机三仓库（遗留 / 前端 / 后端）的绝对路径见**项目根** `.agents/paths.env`（每个开发者不同；缺失时的探测 / 写入流程见 `kthis-migration` 技能 `references/repos-and-map.md` §路径配置，或直接询问用户）；技能内不写死任何绝对路径。
 
 迁移文档默认**不入库**：前端仓库 `.gitignore` 忽略 `docs/migration`，迁移文档只作本地设计与交付物；提交只包含代码与规则，需要共享文档时另行约定（导出 / 内部文档平台），不要为此改 `.gitignore`。
 

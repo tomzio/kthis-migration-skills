@@ -1,1 +1,4 @@
 .DS_Store
+
+# 本机私有路径配置（不入库；模板见 skills/kthis-migration/paths.env.example）
+.agents/paths.env

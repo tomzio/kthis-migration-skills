@@ -4,7 +4,7 @@
 
 ## 1. 遗留仓库（路径由使用者提供）
 
-- 路径：优先读**项目根** `.agents/paths.env` 的 `KTHIS_LEGACY_DIR`（每个开发者不同；缺失时运行 `kthis-migration` 技能的 `scripts/setup-paths.sh`，或直接询问使用者），**不要假设固定绝对路径**。典型为 **SVN** 管理、大量扁平 Eclipse 工程、Java 6 源码、**GBK** 编码。
+- 路径：优先读**项目根** `.agents/paths.env` 的 `KTHIS_LEGACY_DIR`（每个开发者不同；缺失时的探测 / 写入流程见 `kthis-migration` 技能 `references/repos-and-map.md` §路径配置，或直接询问使用者），**不要假设固定绝对路径**。典型为 **SVN** 管理、大量扁平 Eclipse 工程、Java 6 源码、**GBK** 编码。
 - 若该仓库自带 `AGENTS.md`，**先读它**（通常只含项目简介与架构速览；没有也不影响）。⚠️ 遗留侧**不一定**有迁移清单或原始分析文档；若另有 `docs/migration/` 之类的原始材料，只作**参考线索**，**以源码为准**。
 
 > **数据库访问**：数据库连接、表结构与只读验证按目标项目根 `AGENTS.md` 的数据库配置执行；不可信输入处理见 `SKILL.md`「信任边界（安全）」。

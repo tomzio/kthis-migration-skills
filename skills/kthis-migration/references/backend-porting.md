@@ -101,14 +101,11 @@
 
 字段口径（`defunct_ind` 'Y'/'N' 与默认过滤、审计四字段、`entity_mstr_id`）见 [repos-and-map.md](repos-and-map.md) §主数据通用约定；**审计字段由框架自动填**（`setModified` 语义见 §4）。另一条硬约束：**绝不直接拷贝遗留 GBK 字节**，中文转码或重录（新侧 UTF-8）。
 
-## 11. 认证与会话
+## 11. 认证与会话（不在迁移范围）
 
-- `/his/**` 按序挂 6 个拦截器（注册处 `autoconfig/ApiWebMvcConfigurer`）：限流 → ExtRequest → Session → ExtSession → 日志 → `RequestAuthInterceptor`。前 5 个来自闭源框架 `com.karrytech.framework.require.starter.interceptor.*`；登录会话放 ThreadLocal `com.karrytech.util.session.SessionFactory`。
-- **免登录白名单是 `interceptor/RequestAuthInterceptor` 的静态 `IGNORED_PATHS`**（`URIPaths` 只是 AntPath 匹配器）。典型条目：登录/验证码、`/his/app/common/**`、`/his/common/file/**`、`/his/common/parameters`、CA、第三方回调（`/his/**/interface/**`）等。**添加免登录接口必须往白名单加路径**，否则 `RequestAuthInterceptor.preHandle` 抛 `AUTH_EXPIRED` → 401。
-- **方法内 `createSession()` 没有共享实现**，各 controller 自己定义一个同名方法，判据统一是 `if (SessionFactory.get() == null)`，构造系统会话（`userMstrId = 0`、`userName = "系统管理员"`、`entityMstrId = 1`）。
-  - 用它的场景：**没有登录用户**的入口 —— 内部调用、第三方回调、定时/批处理触发。
-  - 有登录用户的普通业务接口**不要**加，避免掩盖真实的会话缺失。
-  - 遗留里这类接口通常在方法内自建系统会话，移植时**一并保留**；个别把 `@Transactional` 标在 controller 层，也照旧。
+- 迁移默认**不修改认证 / 授权**：不新增免登录路径、不新建系统会话、不放宽权限判断，也不为调通接口改鉴权配置。
+- 遗留入口若依赖免登录或系统会话，先记录现状与影响并停止实现，交由用户单独决策；未获明确指示前不要写相关代码。
+- 有登录用户的普通业务接口不要额外放行；controller 层 `@Transactional` 等遗留写法先与用户确认再照旧。
 
 ## 12. 会踩的坑
 

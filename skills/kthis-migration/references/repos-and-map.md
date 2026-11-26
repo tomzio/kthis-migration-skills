@@ -4,7 +4,7 @@
 
 ## 路径配置（每个开发者不同）
 
-三个仓库的绝对路径因机器而异，统一从**项目根** `.agents/paths.env` 读取（唯一配置文件，本机私有、已 gitignore），不要假设固定路径：
+三个仓库的绝对路径因机器而异，统一从**项目根** `.agents/paths.env` 读取（唯一配置文件，本机私有、不入库），不要假设固定路径：
 
 | 变量 | 仓库 |
 | --- | --- |
@@ -12,8 +12,8 @@
 | `WEBHIS_FRONT_DIR` | 新前端 webhis-front |
 | `WEBHIS_SERVER_DIR` | 新后端 webhis-server |
 
-- 生成 / 校验：`scripts/setup-paths.sh`（自动探测并写出到项目 `.agents/paths.env`；`--legacy/--front/--server <dir>` 显式指定；`--out <file>` 改写出位置；`--print` 仅查看当前值；`--detect` 只探测不写；`--force` 强制重探覆盖；`--help` 看全部）。
-- `.agents/paths.env` 是本机私有文件，已被 `.gitignore` 忽略；模板随技能提供（`paths.env.example`），缺失时 `scripts/setup-paths.sh` 会自动落位到项目 `.agents/paths.env.example`（可提交到仓库）。
+- 生成 / 校验：`scripts/setup-paths.sh` 默认只探测并打印；确认后加 `--write` 写入项目 `.agents/paths.env`（唯一写入位置，其它参数见 `--help`）。
+- `.agents/paths.env` 本机私有、**不入库**（请确保项目 `.gitignore` 已忽略；`--write` 会检查提示）。模板 `paths.env.example` 可手动复制到 `.agents/`（模板可入库）；脚本默认只读，不会自动建目录或写模板，`paths.env` 仍需 `--write` 才生成。
 - **跨平台运行**：`.sh` 脚本需 bash（macOS / Linux / Windows Git Bash 或 WSL）；原生 CMD/PowerShell 不支持。`grep-gbk.sh` 依赖 `iconv`；`chmod 600` 在 Git Bash 可能不生效。
 - 下文凡写 `<遗留>` / `<前端>` / `<后端>`，均指上述变量解析出的绝对路径；执行 skill 自带脚本用「skill 根目录 + 相对路径」。
 
